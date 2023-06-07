@@ -3,6 +3,7 @@ This is a simple implementation of reliable delivery of packages by the UDP.
 This project was developed by me and why not, maybe someone is interested in how simple delivery of packets via UDP works.
 This project is not an example of the most productive of reliable UDP.
 I wanted to make a very simple example of reliable packet delivery over UDP.
+
 From time to time I will correct errors if I find or you, I recommend you to go to my Discord server: https://discord.gg/x2yUKGmfgY
 
 # Features
