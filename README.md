@@ -1,5 +1,4 @@
 # SimpleUDP - Reliable UDP Network
 This is a simple implementation of reliable delivery of packages by the UDP
 
-
-https://github.com/StrumDev/SimpleUDP/assets/114677727/99383afe-0671-4295-8e21-8ce36d84279a
+https://github.com/StrumDev/SimpleUDP/assets/114677727/29eb500b-608b-49ee-a1fe-3c9632c26d4a
