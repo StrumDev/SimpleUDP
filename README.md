@@ -1,2 +1,2 @@
 # SimpleUDP - Reliable UDP Network
-Soon
+This is a simple implementation of reliable delivery of packages by the UDP
