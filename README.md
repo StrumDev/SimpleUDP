@@ -15,11 +15,9 @@ SimpleUDP - This is a simple implementation of reliable delivery of packages by 
 
 I will update some elements in the future to make it easier and more productive.
 
-GitHub
-Discord
+### **By StrumDev 🙃**
+### **I am Ukrainian 🇺🇦**
 
-**By StrumDev 🙃**
-
-**I am Ukrainian 🇺🇦**
+# [Discord](https://discord.gg/x2yUKGmfgY)
 
 https://github.com/StrumDev/SimpleUDP/assets/114677727/29eb500b-608b-49ee-a1fe-3c9632c26d4a
