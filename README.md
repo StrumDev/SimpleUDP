@@ -4,6 +4,8 @@ SimpleUDP - This is a simple implementation of reliable delivery of packages by 
 
 [![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)
 
+# SimpleUDP v0.2.0 Soon
+
 # Technical details
 
 * 2 channel and small packet size: Unreliable: 1 byte / Reliable: 3 byte.
