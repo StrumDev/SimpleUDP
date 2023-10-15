@@ -6,6 +6,9 @@ SimpleUDP - This is a simple implementation of reliable delivery of packages by 
 
 # SimpleUDP v0.2.0 Soon
 
+![image](https://github.com/StrumDev/SimpleUDP/assets/114677727/5c7c530c-6b01-4866-b8e5-d570512a0b39)
+
+
 # Technical details
 
 * 2 channel and small packet size: Unreliable: 1 byte / Reliable: 3 byte.
