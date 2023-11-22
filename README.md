@@ -21,17 +21,17 @@ UDP library for C# with implementation of reliable and unreliable messages.
     Methods:
         server.Start(/*Port*/); // Accepts a parameter of type ushort to set the port.
         
-        Disconnect(ClientId); // Force disconnect the client
+        server.Disconnect(/*Peer*/); // Accepts a parameter of type Peer class to force a client to disconnect from the server.
         
-        Send(ClientId, Channel, Data); // Send a package one client: true send reliably, false unreliably
+        server.Send(ClientId, Channel, Data); // Send a package one client: true send reliably, false unreliably
         
-        SendAll(Channel, Data); // Send the package to all but one client: true send reliably, false unreliably
+        server.SendAll(Channel, Data); // Send the package to all but one client: true send reliably, false unreliably
         
-        SendAll(ClientId, Channel, Data); // Send a package all clients: true send reliably, false unreliably
+        server.SendAll(ClientId, Channel, Data); // Send a package all clients: true send reliably, false unreliably
         
-        GetClientEndPoint(ClientId) // Get client EndPoint
+        server.GetClientEndPoint(ClientId) // Get client EndPoint
         
-        Stop(); // Stop the server quietly
+        server.Stop(); // Stop the server quietly
         
     Callback:
         OnClientConnected(ClientId); // When the client connects
