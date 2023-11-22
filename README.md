@@ -38,9 +38,15 @@ UDP library for C# with implementation of reliable and unreliable messages.
             server.SendAll(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/);
 
         // Receiving and processing all received data.
+        
         // Note: call this method in loops or updates to process messages.
             server.ReceiveAll();
 
+        // Client status updates.
+        // Pass in the parameters how much time has passed in milliseconds since the last update - this is important for processing reliable packets and measuring RTT.
+        // Note: Call this method in loops or updates to handle reliable messages and keep clients connected.
+            server.UpdatePeer(/*DeltaTime*/);
+        
         // Stop the server.
             server.Stop(); 
         
@@ -75,11 +81,14 @@ UDP library for C# with implementation of reliable and unreliable messages.
             client.Stop(); 
 
     Callback:
-       OnConnected(); // Called when the client has successfully connected
-       
-       OnDisconnected(); // Called when the client has disconnected
-       
-       OnHandler(Data, Channel); // Receives packets
+        // Called when connected.
+            server.OnConnected = Method();
+
+        // Called when disconnected.
+            server.OnDisconnected = Method();
+
+        // Called when a new message is received, returning the <bool, byte[]> parameters
+            server.OnHandler = Method(<bool, byte[]>);
 ```
 
 # Example: Unity Game
