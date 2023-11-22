@@ -16,7 +16,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 # How to use
 
-First, add the ```charp using SimpleUDP ```;
+First, add the ```csharp using SimpleUDP ```;
 
 # Example: Unity Game
 
