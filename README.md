@@ -14,7 +14,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
 * Licence type (MIT licence).
 * The library is under development.
 
-Discord server: https://discord.gg/x2yUKGmfgY
+Discord server: [Discord](https://discord.gg/x2yUKGmfgY)
 
 # Description of what is available
 
