@@ -41,10 +41,9 @@ public class Player : MonoBehaviour
         packet.AddFloat(transform.position.y);
         packet.AddFloat(transform.position.z);
 
-        packet.AddFloat(transform.rotation.x);
-        packet.AddFloat(transform.rotation.y);
-        packet.AddFloat(transform.rotation.z);
-        packet.AddFloat(transform.rotation.w);
+        packet.AddFloat(transform.rotation.eulerAngles.x);
+        packet.AddFloat(transform.rotation.eulerAngles.y);
+        packet.AddFloat(transform.rotation.eulerAngles.z);
 
         return packet;
     }

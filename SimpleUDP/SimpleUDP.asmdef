@@ -1,0 +1,14 @@
+{
+    "name": "SimpleUDP by StrumDev",
+    "rootNamespace": "SimpleUDP",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

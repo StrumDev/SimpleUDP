@@ -8,27 +8,29 @@ public class GameNetwork : MonoBehaviour
     public string IpAddress = "127.0.0.1";
     public ushort Port = 12700;
     
-    public Server Server;
-    public Client Client;
-
-    public static GameNetwork Ins;
+    public static Server Server;
+    public static Client Client;
 
     private GUIStyle style;
+    private bool isActive;
 
     private void Awake()
     {
-        Ins = this;
-
         Server = new Server();
         Client = new Client();
     }
 
     private void Start()
     {
+        Log.Initializer(Debug.Log, Debug.LogWarning);
+
         style = new GUIStyle();
         style.fontStyle = FontStyle.Bold;
 
+        isActive = true;
+        
         Tick();
+        TickPeer();
     }
 
     private void OnGUI()
@@ -60,20 +62,25 @@ public class GameNetwork : MonoBehaviour
 
     private void ClientGUI()
     {
-        if (!Client.IsConnected && !Client.IsConnecting)
+        if (Client.State == State.NoConnect)
         {
             if (GUILayout.Button("Connect"))
                 Client.Connect(IpAddress, Port);
         }
-        else if (Client.IsConnecting)
+        else if (Client.State == State.Connecting)
         {
-            if (GUILayout.Button("Stop Connecting"))
+            if (GUILayout.Button("Stop Connecting..."))
                 Client.Stop();
         }
-        else if (Client.IsConnected)
+        else if (Client.State == State.Connected)
         {
             if (GUILayout.Button("Disconnect"))
-                Client.Disconnect(true);
+                Client.Disconnect();
+        }
+        else if (Client.State == State.Disconnecting)
+        {
+            if (GUILayout.Button("Disconnecting..."))
+                Client.Stop();
         }
     }
 
@@ -89,16 +96,27 @@ public class GameNetwork : MonoBehaviour
 
     private async void Tick()
     {
-        while (true)
+        while (isActive)
         {
-            Server?.Tick();
-            Client?.Tick();
+            Server?.ReceiveAll();
+            Client?.ReceiveAll();
+            await Task.Delay(10);
+        }
+    }
+
+    private async void TickPeer()
+    {
+        while (isActive)
+        {
+            Server?.UpdatePeer(10);
+            Client?.UpdatePeer(10);
             await Task.Delay(10);
         }
     }
 
     private void OnApplicationQuit()
     {
+        isActive = false;
         Server?.Stop();
         Client?.Disconnect();
     }
