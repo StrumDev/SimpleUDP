@@ -32,12 +32,13 @@ UDP library for C# with implementation of reliable and unreliable messages.
         // Sending data to all clients takes the following parameters:
         // bool channel = true send reliably / false send unreliably, byte[] data = byte array, int length = length of byte array.
             server.SendAll(/*Channel*/, /*Data*/, /*Length*/);
-        
-        server.SendAll(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/); // Send a package all clients: true send reliably, false unreliably
-        
-        server.GetClientEndPoint(ClientId) // Get client EndPoint
-        
-        server.Stop(); // Stop the server quietly
+
+        // Sending data to all clients with client rejection has the following parameters:
+        // bool channel = true send reliably / false send unreliably, byte[] data = byte array, int length = length of byte array, Peer to peer = to whom not to send.
+            server.SendAll(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/);
+
+        // Stop the server.
+            server.Stop(); 
         
     Callback:
         OnClientConnected(ClientId); // When the client connects
