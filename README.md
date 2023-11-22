@@ -19,9 +19,11 @@ UDP library for C# with implementation of reliable and unreliable messages.
 ### Server:
 ```csharp
     Methods:
-        server.Start(/*Port*/); // Accepts a parameter of type ushort to set the port.
-        
-        server.Disconnect(/*Peer*/); // Accepts a parameter of type Peer class to force a client to disconnect from the server.
+        // Accepts a parameter of type ushort to set the port.
+        server.Start(/*Port*/);
+
+        // Accepts a parameter of type Peer class to force a client to disconnect from the server.
+        server.Disconnect(/*Peer*/);
 
         // Sending data to a specific client takes the following parameters:
         // bool channel = true send reliably / false send unreliably, byte[] data = byte array, int length = length of byte array, Peer peer = to whom to send.
