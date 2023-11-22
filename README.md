@@ -18,8 +18,6 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 ### Server:
     Menhods:
-        Tick(); // Call this method when you want to process the data
-        
         Start(Port); // Starts waiting for packets and connections
         
         Disconnect(ClientId); // Force disconnect the client
