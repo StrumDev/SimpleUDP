@@ -23,7 +23,8 @@ UDP library for C# with implementation of reliable and unreliable messages.
         
         server.Disconnect(/*Peer*/); // Accepts a parameter of type Peer class to force a client to disconnect from the server.
         
-        server.Send(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/); // Send a package one client: true send reliably, false unreliably
+        server.Send(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/); // Sending data to a specific client takes the following parameters:
+        bool channel = true send reliably / false send unreliably, byte[] data = byte array, int length = length of byte array, Peer peer = to whom to send.
         
         server.SendAll(/*Channel*/, /*Data*/, /*Length*/); // Send the package to all but one client: true send reliably, false unreliably
         
