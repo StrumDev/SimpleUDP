@@ -27,8 +27,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
         // Sending data to a specific client takes the following parameters:
         // bool channel = true send reliably / false send unreliably, byte[] data = byte array, int length = length of byte array, Peer peer = to whom to send.
-
-        server.Send(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/);
+            server.Send(/*Channel*/, /*Data*/, /*Length*/, /*Peer*/);
         
         server.SendAll(/*Channel*/, /*Data*/, /*Length*/); // Send the package to all but one client: true send reliably, false unreliably
         
