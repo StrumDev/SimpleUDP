@@ -16,8 +16,9 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 # Description of what is available
 
-### Server:
 ```csharp
+### Server:
+
     Methods:
         // Accepts a parameter of type ushort to set the port.
             server.Start(/*Port*/);
@@ -54,7 +55,6 @@ UDP library for C# with implementation of reliable and unreliable messages.
         // Called when a new message is received, returning the <bool, byte[], Peer> parameters
             server.OnHandler = Method(<bool, byte[], Peer>);
 
-```
 ### Client:
     Methods:
         // Accepts a parameter of type ushort to set the port.
@@ -80,6 +80,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
        OnDisconnected(); // Called when the client has disconnected
        
        OnHandler(Data, Channel); // Receives packets
+```
 
 # Example: Unity Game
 
