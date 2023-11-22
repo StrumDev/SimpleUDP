@@ -16,6 +16,36 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 # Description of what is available
 
+### Server 
+
+    Menhods:
+        Tick(); // Call this method when you want to process the data
+        
+        Start(Port); // Starts waiting for packets and connections
+        
+        Disconnect(ClientId); // Force disconnect the client
+        
+        Send(ClientId, Channel, Data); // Send a package one client: true send reliably, false unreliably
+        
+        SendAll(Channel, Data); // Send the package to all but one client: true send reliably, false unreliably
+        
+        SendAll(ClientId, Channel, Data); // Send a package all clients: true send reliably, false unreliably
+        
+        GetClientEndPoint(ClientId) // Get client EndPoint
+        
+        Stop(); // Stop the server quietly
+    Callback:
+        OnClientConnected(ClientId); // When the client connects
+        
+        OnClientDisconnected(ClientId); // When the client disconnects
+        
+        OnHandler(ClientId, Data, Channel); // Receives packets
+        
+    Parameters:
+        bool IsRunning // If the server expects packets then true
+        
+        uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
+
 ### Client
 
     Menhods:
@@ -42,25 +72,6 @@ UDP library for C# with implementation of reliable and unreliable messages.
        uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
        
        bool IsConnected, IsConnecting, IsDisconnecting;
-        
-### Server 
-
-    Menhods:
-        Tick(); // Call this method when you want to process the data
-        Start(Port); // Starts waiting for packets and connections
-        Disconnect(ClientId); // Force disconnect the client
-        Send(ClientId, Channel, Data); // Send a package one client: true send reliably, false unreliably
-        SendAll(Channel, Data); // Send the package to all but one client: true send reliably, false unreliably
-        SendAll(ClientId, Channel, Data); // Send a package all clients: true send reliably, false unreliably
-        GetClientEndPoint(ClientId) // Get client EndPoint
-        Stop(); // Stop the server quietly
-    Callback:
-        OnClientConnected(ClientId); // When the client connects
-        OnClientDisconnected(ClientId); // When the client disconnects
-        OnHandler(ClientId, Data, Channel); // Receives packets
-    Parameters:
-        bool IsRunning // If the server expects packets then true
-        uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
 
 # Example: Unity Game
 
