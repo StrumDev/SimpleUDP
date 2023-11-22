@@ -45,11 +45,14 @@ UDP library for C# with implementation of reliable and unreliable messages.
             server.Stop(); 
         
     Callback:
-        server.OnClientConnected<Peer>; // When the client connects
-        
-        server.OnClientDisconnected<Peer>; // When the client disconnects
-        
-        server.OnHandler<bool, byte[], Peer>; // Receives packets
+        // Called when a new client is connected.
+            server.OnClientConnected<Peer>;
+
+        // Called when a new client is disconnected.
+            server.OnClientDisconnected<Peer>; // When the client disconnects
+
+        // Called when a new message is received.
+            server.OnHandler<bool, byte[], Peer>; // Receives packets
 
 ```
 ### Client:
