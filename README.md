@@ -16,7 +16,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 # Description of what is available
 
-###Client
+##Client
 
     Menhods:
        * Tick(); // Call this method when you want to process the data
@@ -33,7 +33,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
        * uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
        * bool IsConnected, IsConnecting, IsDisconnecting;
         
-###Server 
+##Server 
 
     Menhods:
         Tick(); // Call this method when you want to process the data
