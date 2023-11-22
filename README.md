@@ -77,6 +77,11 @@ UDP library for C# with implementation of reliable and unreliable messages.
         // Note: call this method in loops or updates to process messages.
             client.ReceiveAll();
 
+        // Client status updates.
+        // Pass in the parameters how much time has passed in milliseconds since the last update - this is important for processing reliable packets and measuring RTT.
+        // Note: Call this method in loops or updates to handle reliable messages and keep clients connected.
+            server.UpdatePeer(/*DeltaTime*/);
+
         // Stop the client.
             client.Stop(); 
 
