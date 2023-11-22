@@ -19,6 +19,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
 ### Client
 
     Menhods:
+    
     * Tick(); // Call this method when you want to process the data
     * Connect(IpAddres, Port); // Creates a connection between the server and the client
     * Disconnect(IsReliable); // Terminates the connection to the server: ( IsReliable = true: The client will wait for a response from the server )
