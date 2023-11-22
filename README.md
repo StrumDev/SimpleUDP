@@ -14,6 +14,42 @@ UDP library for C# with implementation of reliable and unreliable messages.
 * Licence type (MIT licence).
 * The library is under development.
 
+# Description of what is available
+
+###Client 
+    Menhods:
+       * Tick(); // Call this method when you want to process the data
+       * Connect(IpAddres, Port); // Creates a connection between the server and the client
+       * Disconnect(IsReliable); // Terminates the connection to the server: ( IsReliable = true: The client will wait for a response from the server )
+       * Send(Channel, Data); // Send a package: true send reliably, false unreliably
+       * Stop(); // Stop the client quietly
+    Callback:
+       * OnConnected(); // Called when the client has successfully connected
+       * OnDisconnected(); // Called when the client has disconnected
+       * OnHandler(Data, Channel); // Receives packets
+    Parameters:
+       * bool IsRunning // If the client expects packets then true
+       * uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
+       * bool IsConnected, IsConnecting, IsDisconnecting;
+        
+###Server 
+    Menhods:
+        Tick(); // Call this method when you want to process the data
+        Start(Port); // Starts waiting for packets and connections
+        Disconnect(ClientId); // Force disconnect the client
+        Send(ClientId, Channel, Data); // Send a package one client: true send reliably, false unreliably
+        SendAll(Channel, Data); // Send the package to all but one client: true send reliably, false unreliably
+        SendAll(ClientId, Channel, Data); // Send a package all clients: true send reliably, false unreliably
+        GetClientEndPoint(ClientId) // Get client EndPoint
+        Stop(); // Stop the server quietly
+    Callback:
+        OnClientConnected(ClientId); // When the client connects
+        OnClientDisconnected(ClientId); // When the client disconnects
+        OnHandler(ClientId, Data, Channel); // Receives packets
+    Parameters:
+        bool IsRunning // If the server expects packets then true
+        uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
+
 # Example: Unity Game
 
 How to test the game: create a new project in Unity, copy the UnityGame folder from the examples folder to your project, and copy the SimpleUDP folder to the new project.
