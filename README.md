@@ -41,16 +41,12 @@ UDP library for C# with implementation of reliable and unreliable messages.
             server.Stop(); 
         
     Callback:
-        OnClientConnected(ClientId); // When the client connects
+        server.OnClientConnected(/*Port*/); // When the client connects
         
-        OnClientDisconnected(ClientId); // When the client disconnects
+        server.OnClientDisconnected(/*Port*/); // When the client disconnects
         
-        OnHandler(ClientId, Data, Channel); // Receives packets
-        
-    Parameters:
-        bool IsRunning // If the server expects packets then true
-        
-        uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
+        server.OnHandler(/*Channel*/, /*Data*/, /*Port*/); // Receives packets
+
 ```
 ### Client:
     Methods:
