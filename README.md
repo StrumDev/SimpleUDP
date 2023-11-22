@@ -17,7 +17,8 @@ UDP library for C# with implementation of reliable and unreliable messages.
 # Description of what is available
 
 ### Server:
-    Menhods:
+```csharp
+    Menhods: 
         Start(/*Port*/); // Starts waiting for packets and connections
         
         Disconnect(ClientId); // Force disconnect the client
@@ -43,7 +44,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
         bool IsRunning // If the server expects packets then true
         
         uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
-
+```
 ### Client:
     Menhods:
         Tick(); // Call this method when you want to process the data
