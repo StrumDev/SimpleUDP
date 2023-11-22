@@ -45,11 +45,11 @@ UDP library for C# with implementation of reliable and unreliable messages.
             server.Stop(); 
         
     Callback:
-        server.OnClientConnected(/*Port*/); // When the client connects
+        server.OnClientConnected<Peer>; // When the client connects
         
-        server.OnClientDisconnected(/*Port*/); // When the client disconnects
+        server.OnClientDisconnected<Peer>; // When the client disconnects
         
-        server.OnHandler(/*Channel*/, /*Data*/, /*Port*/); // Receives packets
+        server.OnHandler<bool, byte[], Peer>; // Receives packets
 
 ```
 ### Client:
@@ -70,13 +70,6 @@ UDP library for C# with implementation of reliable and unreliable messages.
        OnDisconnected(); // Called when the client has disconnected
        
        OnHandler(Data, Channel); // Receives packets
-         
-    Parameters:
-       bool IsRunning // If the client expects packets then true
-       
-       uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
-       
-       bool IsConnected, IsConnecting, IsDisconnecting;
 
 # Example: Unity Game
 
