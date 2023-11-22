@@ -16,13 +16,13 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 # How to use
 
-# Examples: Unity Game
+# Example: Unity Game
 
 How to test the game: create a new project in Unity, copy the UnityGame folder from the examples folder to your project, and copy the SimpleUDP folder to the new project.
 
 https://github.com/StrumDev/SimpleUDP/assets/114677727/29eb500b-608b-49ee-a1fe-3c9632c26d4a
 
-# Examples: Console Messanger
+# Example: Console Messanger
 
 How to test Messenger: create a new dotnet project, copy the scripts from the examples/console folder to your project, and copy the SimpleUDP folder to the new project.
 
