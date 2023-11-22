@@ -19,7 +19,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
 ### Server:
 ```csharp
     Methods:
-        Start(/*Port*/); // Starts waiting for packets and connections
+        server.Start(/*Port*/); // Starts waiting for packets and connections
         
         Disconnect(ClientId); // Force disconnect the client
         
