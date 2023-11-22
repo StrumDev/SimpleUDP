@@ -33,6 +33,7 @@ UDP library for C# with implementation of reliable and unreliable messages.
         GetClientEndPoint(ClientId) // Get client EndPoint
         
         Stop(); // Stop the server quietly
+        
     Callback:
         OnClientConnected(ClientId); // When the client connects
         
