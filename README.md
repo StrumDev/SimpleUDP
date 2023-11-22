@@ -19,19 +19,18 @@ UDP library for C# with implementation of reliable and unreliable messages.
 ### Client
 
     Menhods:
-    
-    * Tick(); // Call this method when you want to process the data
-    * Connect(IpAddres, Port); // Creates a connection between the server and the client
-    * Disconnect(IsReliable); // Terminates the connection to the server: ( IsReliable = true: The client will wait for a response from the server )
-    * Send(Channel, Data); // Send a package: true send reliably, false unreliably
-    * Stop(); // Stop the client quietly
+        * Tick(); // Call this method when you want to process the data
+        * Connect(IpAddres, Port); // Creates a connection between the server and the client
+        * Disconnect(IsReliable); // Terminates the connection to the server: ( IsReliable = true: The client will wait for a response from the server )
+        * Send(Channel, Data); // Send a package: true send reliably, false unreliably
+        * Stop(); // Stop the client quietly
 
-Callback:
-   * OnConnected(); // Called when the client has successfully connected
-   * OnDisconnected(); // Called when the client has disconnected
-   * OnHandler(Data, Channel); // Receives packets
+    Callback:
+       * OnConnected(); // Called when the client has successfully connected
+       * OnDisconnected(); // Called when the client has disconnected
+       * OnHandler(Data, Channel); // Receives packets
          
-Parameters:
+    Parameters:
        * bool IsRunning // If the client expects packets then true
        * uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
        * bool IsConnected, IsConnecting, IsDisconnecting;
