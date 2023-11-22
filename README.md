@@ -14,6 +14,8 @@ UDP library for C# with implementation of reliable and unreliable messages.
 * Licence type (MIT licence).
 * The library is under development.
 
+# Usage
+
 # Unity Game
 
 How to test the game: create a new project in Unity, copy the UnityGame folder from the examples folder to your project, and copy the SimpleUDP folder to the new project.
