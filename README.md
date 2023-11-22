@@ -16,7 +16,8 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 # How to use
 
-First, add the 
+First, add. 
+
 ```csharp 
 using SimpleUDP;
 ```
