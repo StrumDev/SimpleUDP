@@ -18,8 +18,8 @@ UDP library for C# with implementation of reliable and unreliable messages.
 
 ### Server:
 ```csharp
-
-Start(/*Port*/); // Starts waiting for packets and connections
+    Methods:
+        Start(/*Port*/); // Starts waiting for packets and connections
         
         Disconnect(ClientId); // Force disconnect the client
         
@@ -46,7 +46,7 @@ Start(/*Port*/); // Starts waiting for packets and connections
         uint MaxTimeOut = Milliseconds; // The time after which the connection will be terminated
 ```
 ### Client:
-    Menhods:
+    Methods:
         Tick(); // Call this method when you want to process the data
         
         Connect(IpAddres, Port); // Creates a connection between the server and the client
