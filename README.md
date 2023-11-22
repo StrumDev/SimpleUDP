@@ -15,6 +15,9 @@ UDP library for C# with implementation of reliable and unreliable messages.
 * The library is under development.
 
 # Unity Game
+
+* How to test the game create a new project in Unity copy the UnityGame folder from the examples folder to your project and copy the SimpleUDP folder to your project.
+
 https://github.com/StrumDev/SimpleUDP/assets/114677727/29eb500b-608b-49ee-a1fe-3c9632c26d4a
 
 # Console Messanger
