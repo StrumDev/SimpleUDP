@@ -57,15 +57,22 @@ UDP library for C# with implementation of reliable and unreliable messages.
 ```
 ### Client:
     Methods:
-        Tick(); // Call this method when you want to process the data
-        
-        Connect(IpAddres, Port); // Creates a connection between the server and the client
-        
-        Disconnect(IsReliable); // Terminates the connection to the server: ( IsReliable = true: The client will wait for a response from the server )
-        
-        Send(Channel, Data); // Send a package: true send reliably, false unreliably
-        
-        Stop(); // Stop the client quietly
+        // Accepts a parameter of type ushort to set the port.
+            client.Connect(/*Port*/);
+
+        // Accepts a parameter of type Peer class to force a client to disconnect from the server.
+            client.Disconnect(/*Peer*/);
+
+        // Sending data to a specific client takes the following parameters:
+        // bool channel = true send reliably / false send unreliably, byte[] data = byte array, int length = length of byte array.
+            client.Send(/*Channel*/, /*Data*/, /*Length*/);
+
+        // Receiving and processing all received data.
+        // Note: call this method in loops or updates to process messages.
+            client.ReceiveAll();
+
+        // Stop the client.
+            client.Stop(); 
 
     Callback:
        OnConnected(); // Called when the client has successfully connected
