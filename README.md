@@ -19,4 +19,6 @@ Documentation: [here](https://github.com/StrumDev/SimpleUDP/blob/main/Documentat
 
 Discord server: [here](https://discord.gg/x2yUKGmfgY)
 
-[YouTube Video](https://youtu.be/2LoHd6rIDFg)
+# SimpleUDP - Unity demo game.
+
+https://github.com/StrumDev/SimpleUDP/assets/114677727/d5517072-a254-4171-a6ff-986ff0f4704a
