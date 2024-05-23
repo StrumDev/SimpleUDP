@@ -19,4 +19,4 @@ Documentation: [here](https://github.com/StrumDev/SimpleUDP/blob/main/Documentat
 
 Discord server: [here](https://discord.gg/x2yUKGmfgY)
 
-[Alt text](https://youtu.be/2LoHd6rIDFg)
+[![Alt text]](https://youtu.be/2LoHd6rIDFg)
