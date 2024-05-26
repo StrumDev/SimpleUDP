@@ -2,7 +2,6 @@ using SimpleUDP;
 using UnityEngine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System;
 
 namespace SimpleUDP.Examples
 {
@@ -15,14 +14,12 @@ namespace SimpleUDP.Examples
             NetworkManager.Server.OnStart += OnStartServer;
             NetworkManager.Server.OnStart += OnStopServer;
             
-            NetworkManager.Server.OnReceiveReliable += Handler;
-            NetworkManager.Server.OnReceiveUnreliable += Handler;
+            NetworkManager.Server.OnReceiveReliable += HandlerReceive;
+            NetworkManager.Server.OnReceiveUnreliable += HandlerReceive;
 
             NetworkManager.Server.OnConnected += ClientConnected;
             NetworkManager.Server.OnDisconnected += ClientDisconnected;        
         }
-
-        
 
         private void OnStartServer()
         {
@@ -35,7 +32,7 @@ namespace SimpleUDP.Examples
             clientIds.Clear();
         }
 
-        private void Handler(Packet packet, Peer peer)
+        private void HandlerReceive(Packet packet, Peer peer)
         {
             switch ((Header)packet.Byte())
             {

@@ -43,7 +43,7 @@ namespace SimpleUDP.Examples
             Client.OnConnected += OnConnected;
             Client.OnDisconnected += OnDisconnected;
 
-            UIConnectButton("Connect", Connect);
+            SetConnectButton("Connect", Connect);
         }
 
         private void Update()
@@ -58,7 +58,7 @@ namespace SimpleUDP.Examples
         private void OnConnected()
         {
             MainPanel.SetActive(false);
-            UIDisconnectButton("Disconnect", Disconnect);
+            SetDisconnectButton("Disconnect", Disconnect);
         }
 
         private void OnDisconnected()
@@ -69,8 +69,8 @@ namespace SimpleUDP.Examples
             MainPanel.SetActive(true);
             GamePanel.SetActive(false);
 
-            UIConnectButton("Connect", Connect);
-            UIDisconnectButton("Disconnect", Disconnect);
+            SetConnectButton("Connect", Connect);
+            SetDisconnectButton("Disconnect", Disconnect);
         }
 
         public void StartHost()
@@ -105,13 +105,13 @@ namespace SimpleUDP.Examples
             if (!Client.IsRunning)
                 Client.Start();
             
-            UIConnectButton("Stop Connecting", StopConnecting);
+            SetConnectButton("Stop Connecting", StopConnecting);
             Client.Connect(IpAddress, Port);
         }
 
         public void Disconnect()
         {
-            UIDisconnectButton("Stop Disconnecting", StopDisconnecting);
+            SetDisconnectButton("Stop Disconnecting", StopDisconnecting);
             Client.Disconnect();
         }
 
@@ -126,14 +126,14 @@ namespace SimpleUDP.Examples
             Client.Disconnected();
         }
 
-        private void UIConnectButton(string text, Action action)
+        private void SetConnectButton(string text, Action action)
         {
             TextConnect.text = text;
             ButtonСonnect.onClick.RemoveAllListeners();
             ButtonСonnect.onClick.AddListener(() => action());
         }
 
-        private void UIDisconnectButton(string text, Action action)
+        private void SetDisconnectButton(string text, Action action)
         {
             TextDisconnect.text = text;
             ButtonDisconnect.onClick.RemoveAllListeners();

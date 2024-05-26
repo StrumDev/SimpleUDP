@@ -10,16 +10,25 @@ namespace SimpleUDP.Utils
     public static class Converter
     {
     #region ToBytes
+        
+        public static byte SetBool(bool value, byte[] array, int startIndex)
+        {
+            array[startIndex] = (byte)(value ? 1 : 0);
+
+            return sizeof(byte);
+        }
 
         public static byte SetByte(byte value, byte[] array, int startIndex)
         {
             array[startIndex] = value;
+
             return sizeof(byte);
         }
 
         public static byte SetSByte(sbyte value, byte[] array, int startIndex)
         {
             array[startIndex] = (byte)value;
+
             return sizeof(sbyte);
         }
 
@@ -27,6 +36,7 @@ namespace SimpleUDP.Utils
         {
             array[startIndex    ] = (byte)value;
             array[startIndex + 1] = (byte)(value >> 8);
+
             return sizeof(short);
         }
 
@@ -110,92 +120,67 @@ namespace SimpleUDP.Utils
 
     #region GetValue
 
+        public static bool GetBool(byte[] array, int startIndex)
+        {
+            return (array[startIndex] >= 1 ? true : false);
+        }
+
         public static byte GetByte(byte[] array, int startIndex)
         {
-            byte value = array[startIndex];
-            startIndex += sizeof(byte);
-
-            return value;
+            return array[startIndex];
         }
 
         public static sbyte GetSByte(byte[] array, int startIndex)
         {
-            sbyte value = (sbyte)array[startIndex];
-            startIndex += sizeof(sbyte);
-
-            return value;
+            return (sbyte)array[startIndex];
         }
 
         public static short GetShort(byte[] array, int startIndex)
         {
-            short value = (short)(array[startIndex] | (array[startIndex + 1] << 8));
-
-            startIndex += sizeof(short);
-            return value;
+           return (short)(array[startIndex] | (array[startIndex + 1] << 8));
         }
 
         public static ushort GetUShort(byte[] array, int startIndex)
         {
-            ushort value = (ushort)(array[startIndex] | (array[startIndex + 1] << 8));
-
-            startIndex += sizeof(ushort);
-            return value;
+            return (ushort)(array[startIndex] | (array[startIndex + 1] << 8));
         }
 
         public static int GetInt(byte[] array, int startIndex)
         {
-            int value = (int)(array[startIndex] | (array[startIndex + 1] << 8) | 
+            return (int)(array[startIndex] | (array[startIndex + 1] << 8) | 
             (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24));
-
-            startIndex += sizeof(int);
-            return value;
         } 
 
         public static uint GetUInt(byte[] array, int startIndex)
         {
-            uint value = (uint)(array[startIndex] | (array[startIndex + 1] << 8) | 
+            return (uint)(array[startIndex] | (array[startIndex + 1] << 8) | 
             (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24));
-            
-            startIndex += sizeof(uint);
-            return value;
         }
 
         public static long GetLong(byte[] array, int startIndex)
         {
-            long value = (long)(array[startIndex] | (array[startIndex + 1] << 8) | 
+            return (long)(array[startIndex] | (array[startIndex + 1] << 8) | 
             (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24) | 
             (array[startIndex + 4] << 32) | (array[startIndex + 5] << 40) | 
             (array[startIndex + 6] << 48) | (array[startIndex + 7] << 56));
-            
-            startIndex += sizeof(long);
-            return value;
         }
 
         public static ulong GetULong(byte[] array, int startIndex)
         {
-            ulong value = (ulong)(array[startIndex] | (array[startIndex + 1] << 8) | 
+            return (ulong)(array[startIndex] | (array[startIndex + 1] << 8) | 
             (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24) | 
             (array[startIndex + 4] << 32) | (array[startIndex + 5] << 40) | 
             (array[startIndex + 6] << 48) | (array[startIndex + 7] << 56));
-            
-            startIndex += sizeof(ulong);
-            return value;
         }
 
         public static float GetFloat(byte[] array, int startIndex)
         {
-            float value = BitConverter.ToSingle(array, startIndex);
-
-            startIndex += sizeof(float);
-            return value;
+            return BitConverter.ToSingle(array, startIndex);
         }
 
         public static double GetDouble(byte[] array, int startIndex)
         {
-            double value = BitConverter.ToDouble(array, startIndex);
-
-            startIndex += sizeof(double);
-            return value;
+           return BitConverter.ToDouble(array, startIndex);
         }
 
     #endregion

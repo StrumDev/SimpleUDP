@@ -21,14 +21,16 @@ namespace SimpleUDP
         public Action<Packet, Peer> OnReceiveUnreliable;
         public Action<Packet, EndPoint> OnReceiveBroadcast;
         public Action<Packet, EndPoint> OnReceiveUnconnected;
-
         
         public Dictionary<UdpPeer, Peer> Connections { get; private set; } 
 
-        protected override void OnStarted()
+        public Server()
         {
             Connections = new Dictionary<UdpPeer, Peer>();
-            
+        }
+
+        protected override void OnStarted()
+        {
             OnStart?.Invoke();
         }
 
@@ -36,10 +38,13 @@ namespace SimpleUDP
         {
             lock (Connections)
             {
-                Peer newPeer = new Peer(udpPeer);
-
-                Connections.Add(udpPeer, newPeer);
-                OnConnected?.Invoke(newPeer);
+                if (!Connections.ContainsKey(udpPeer))
+                {
+                    Peer newPeer = new Peer(udpPeer);
+                    
+                    Connections.Add(udpPeer, newPeer);
+                    OnConnected?.Invoke(newPeer);
+                }
             }
         }
 
@@ -47,9 +52,11 @@ namespace SimpleUDP
         {
             lock (Connections)
             {   
-                Peer peer = Connections[udpPeer];
-                Connections.Remove(udpPeer);
-                OnDisconnected?.Invoke(peer);
+                if (Connections.TryGetValue(udpPeer, out Peer peer))
+                {
+                    Connections.Remove(udpPeer);
+                    OnDisconnected?.Invoke(peer);  
+                }
             }
         }
         

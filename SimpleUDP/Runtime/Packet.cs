@@ -44,6 +44,27 @@ namespace SimpleUDP
             return this;
         }
 
+    #region Bool
+
+        public static Packet Bool(bool value, ushort maxSizeData = 64) =>
+            new Packet(new byte[maxSizeData]).Bool(value);
+
+        public Packet Bool(bool value)
+        {
+            write += Converter.SetBool(value, Data, write);
+            return this;
+        }
+
+        public bool Bool()
+        {
+            bool value = Converter.GetBool(Data, read);
+            read += sizeof(byte);
+
+            return value;
+        }
+
+    #endregion
+
     #region Byte
 
         public static Packet Byte(byte value, ushort maxSizeData = 64) =>

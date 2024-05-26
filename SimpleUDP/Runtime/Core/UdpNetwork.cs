@@ -71,7 +71,7 @@ namespace SimpleUDP.Core
         {
             lock (locker)
             {
-                if (Peers.ContainsKey(endPoint))
+                if (!Peers.ContainsKey(endPoint))
                 {
                     if (Peers.Count >= MaxConnections)
                     {

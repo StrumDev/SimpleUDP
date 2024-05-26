@@ -24,7 +24,13 @@ namespace SimpleUDP
         public Action<Packet, EndPoint> OnReceiveBroadcast;
         public Action<Packet, EndPoint> OnReceiveUnconnected;
         
-        private UdpPeer udpPeer = new UdpPeer();
+        private UdpPeer udpPeer;
+
+        public Client()
+        {
+            MaxConnections = 1;
+            udpPeer = new UdpPeer();
+        }
 
         public void Connect(string ipAddress, ushort port)
         {
