@@ -31,6 +31,7 @@ namespace SimpleUDP
 
         protected override void OnStarted()
         {
+            base.OnStarted();
             OnStart?.Invoke();
         }
 
@@ -82,8 +83,12 @@ namespace SimpleUDP
         
         protected override void OnStopped()
         {
-            Connections.Clear();
-            OnStop?.Invoke();
+            lock (Connections)
+            {
+                base.OnStopped();
+                Connections.Clear();
+                OnStop?.Invoke();
+            }
         }
 
         public void SendBroadcast(Packet packet, ushort port)

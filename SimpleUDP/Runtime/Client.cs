@@ -49,6 +49,7 @@ namespace SimpleUDP
 
         protected override void OnStarted()
         {
+            base.OnStarted();
             OnStart?.Invoke();
         }
         
@@ -84,6 +85,7 @@ namespace SimpleUDP
         
         protected override void OnStopped()
         {
+            base.OnStopped();
             OnStop?.Invoke();
         }
 

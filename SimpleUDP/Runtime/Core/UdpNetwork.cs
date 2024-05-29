@@ -255,6 +255,8 @@ namespace SimpleUDP.Core
             {
                 if (Peers.TryGetValue(endPoint, out UdpPeer peer))
                     SendTo(endPoint, Header.Pong);
+                else
+                    SendTo(endPoint, Header.Disconnected);
             }
         }
 
@@ -263,7 +265,7 @@ namespace SimpleUDP.Core
             lock (locker)
             {
                 if (Peers.TryGetValue(endPoint, out UdpPeer peer))
-                    peer.HandlerPong();    
+                    peer.HandlerPong();
             }
         }
 
@@ -281,7 +283,7 @@ namespace SimpleUDP.Core
             lock (locker)
             {
                 if (Peers.TryGetValue(endPoint, out UdpPeer peer))
-                    disconnectedPeers.Push(peer);    
+                    peer.Disconnected();
             }
         }
         
