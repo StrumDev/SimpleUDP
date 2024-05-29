@@ -165,7 +165,7 @@ namespace SimpleUDP.Core
                     HandlerReliableAck(data, length, endPoint);
                     return;
                 case Header.Ping:
-                    SendTo(endPoint, Header.Pong);
+                    HandlerPing(endPoint);
                     return;
                 case Header.Pong:
                     HandlerPong(endPoint);
@@ -246,6 +246,15 @@ namespace SimpleUDP.Core
                 byte[] buffer = new byte[length - HeaderUnreliable];
                 Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
                 OnHandlerUnconnected(buffer, endPoint);
+            }
+        }
+
+        private void HandlerPing(EndPoint endPoint)
+        {
+            lock (locker)
+            {
+                if (Peers.TryGetValue(endPoint, out UdpPeer peer))
+                    SendTo(endPoint, Header.Pong);
             }
         }
 
