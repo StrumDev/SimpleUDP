@@ -9,6 +9,8 @@ The project is still raw, and there may be radical changes in functionality and 
 
 Documentation: [here](https://github.com/StrumDev/SimpleUDP/blob/main/Documentation.md)
 
+[![Donate]]([https://stand-with-ukraine.pp.ua](https://www.paypal.com/donate/?hosted_button_id=7LPMECG4E9EH4))
+
 [![Made in Ukraine](https://img.shields.io/badge/made_in-ukraine-ffd700.svg?labelColor=0057b7)](https://stand-with-ukraine.pp.ua)
 
 * Only UDP.
