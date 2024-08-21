@@ -1,21 +1,17 @@
-// This file is provided under The MIT License as part of SimpleUDP.
-// Copyright (c) StrumDev
-// For additional information please see the included LICENSE.md file or view it on GitHub:
-// https://github.com/StrumDev/SimpleUDP/blob/main/LICENSE
-
 using System;
 
 namespace SimpleUDP.Utils
 {
     public static class Converter
     {
+    
     #region ToBytes
         
         public static byte SetBool(bool value, byte[] array, int startIndex)
         {
             array[startIndex] = (byte)(value ? 1 : 0);
 
-            return sizeof(byte);
+            return sizeof(bool);
         }
 
         public static byte SetByte(byte value, byte[] array, int startIndex)
@@ -74,10 +70,10 @@ namespace SimpleUDP.Utils
             array[startIndex + 1] = (byte)(value >> 8);
             array[startIndex + 2] = (byte)(value >> 16);
             array[startIndex + 3] = (byte)(value >> 24);
-            array[startIndex + 2] = (byte)(value >> 32);
-            array[startIndex + 3] = (byte)(value >> 40);
-            array[startIndex + 2] = (byte)(value >> 48);
-            array[startIndex + 3] = (byte)(value >> 56);
+            array[startIndex + 4] = (byte)(value >> 32);
+            array[startIndex + 5] = (byte)(value >> 40);
+            array[startIndex + 6] = (byte)(value >> 48);
+            array[startIndex + 7] = (byte)(value >> 56);
 
             return sizeof(long);
         }
@@ -88,10 +84,10 @@ namespace SimpleUDP.Utils
             array[startIndex + 1] = (byte)(value >> 8);
             array[startIndex + 2] = (byte)(value >> 16);
             array[startIndex + 3] = (byte)(value >> 24);
-            array[startIndex + 2] = (byte)(value >> 32);
-            array[startIndex + 3] = (byte)(value >> 40);
-            array[startIndex + 2] = (byte)(value >> 48);
-            array[startIndex + 3] = (byte)(value >> 56);
+            array[startIndex + 4] = (byte)(value >> 32);
+            array[startIndex + 5] = (byte)(value >> 40);
+            array[startIndex + 6] = (byte)(value >> 48);
+            array[startIndex + 7] = (byte)(value >> 56);
 
             return sizeof(ulong);
         }

@@ -3,443 +3,288 @@
 ## Overview
 SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for both .NET applications and Unity projects. It supports both server and client functionality, with features for reliable and unreliable messaging.
 
-**Version:** 0.3.0
+### This project is still raw, so I do not recommend using it in commercial projects.
+
+Docs-[General](#General)
+
+Docs-[Server](#Server)
+
+Docs-[Client](#Client)
+
+Docs-[Peer](#Peer)
+
+Docs-[Packet](#Packet)
+
+License-[here](#License)
+
+**Version:** 0.4.0
 
 ## General
 
-The following properties and methods are available in both the `Server` and `Client` classes:
+  The following properties and methods are available in both the `Server` and `Client` classes:
 
 ### Properties
 
 - `bool IsRunning` `Read only`
   - Indicates whether the listening is active.
-  - ```csharp
-    if (server.IsRunning)
-    {
-        Console.WriteLine("Server is running.");
-    }
-    ```
-  
+
 - `ushort LocalPort` `Read only`
   - The local port being listened to.
-  - ```csharp
-    ushort port = server.LocalPort;
-    Console.WriteLine($"Server is listening on port: {port}");
-    ```
-  
+ 
 - `IPEndPoint LocalEndPoint` `Read only`
   - The local IP address and port.
-  - ```csharp
-    IPEndPoint endPoint = server.LocalEndPoint;
-    Console.WriteLine($"Server local end point: {endPoint}");
-    ```
-    
+
 - `bool EnableBroadcast` `Read only`
   - Indicates if broadcast messages can be sent.
   - Enabling the broadcast is available in the parameters of the "Start()" method.
-  - ```csharp
-    if (server.EnableBroadcast)
-    {
-        Console.WriteLine($"Broadcasting is enabled");
-    }
-    ```
-    
+
 - `ushort ReceiveBufferSize`
   - The buffer size in bytes for receiving packets.
   - The default value is 2048.
-  - ```csharp
-    server.ReceiveBufferSize = 2048;
-    ```
-    
+ 
 - `int AvailablePackages`
   - The number of packets waiting to be processed by the `Receive` method.
-  - ```csharp
-    int pendingPackets = server.AvailablePackages;
-    Console.WriteLine($"Pending packets: {pendingPackets}");
-    ```
-    
+ 
 - `bool SocketPoll`
   - Polling status of the socket. More info: [Socket.Poll](https://learn.microsoft.com/en-us/dotnet/api/system.net.sockets.socket.poll?view=net-8.0) reference.
   - Important: use this option only to process Receive in a dedicated thread.
-  - ```csharp
-    if (server.SocketPoll)
-    {
-        server.Receive();
-    }
-    ```
-  
+ 
+### Callbacks
+
+- `Action OnStarted`
+  - Invoked when the server starts.
+ 
+- `Action OnStopped`
+  - Invoked when the server stops.
+ 
+- `Action<EndPoint, byte[]> OnReceiveBroadcast`
+  - Invoked when a broadcast message is received.
+ 
+- `Action<EndPoint, byte[]> OnReceiveUnconnected`
+  - Invoked when a message is received from an unconnected host.
+  - It is not necessary for the client to specify the port as it will be assigned by the system.
+
 ### Methods
 
-- `void Start(ushort port = 0, bool enableBroadcast = false)`
+- `void Start(ushort port, bool enableBroadcast = false)`
   - Important: Must be called before any other operation. Starts listening on the specified port with optional broadcast capability.
-  - ```csharp
-    server.Start(8080, true);
-    ```
 
 - `void Stop()`
   - Stops listening and closes the socket.
-  - ```csharp
-    server.Stop();
-    ```
-    
+
 - `void Receive()`
   - Receives and processes all pending packets.
   - Important: must be called in an infinite loop or in updates to constantly receive notifications if they have been received.
-  - ```csharp
-    server.Receive();
-    ```
-    
-- `void UpdatePeer(uint deltaTime)`
-  - Updates timers and disconnects peers as necessary.
+
+- `void TickUpdate()`
+  - Update the status of connections.
   - Important: must be called in an infinite loop or in updates to process received messages or status.
-  - Important: this method is a combination of the UpdateTimer, UpdateDisconnecting methods, so do not call them because conflicts will occur.
-  - Important: the number is specified in milliseconds.
-  - ```csharp
-    server.UpdatePeer(10);
-    ```
-- `void UpdateTimer(uint deltaTime)`
-  - Updates only the timers.
-  - Important: the number is specified in milliseconds.
-  - ```csharp
-    server.UpdateTimer(10);
-    ```
-    
-- `void UpdateDisconnecting()`
-  - Updates only the disconnecting peers.
-  - ```csharp
-    server.UpdateDisconnecting();
-    ```
-    
-- `void SendBroadcast(Packet packet, ushort port)`
+  - Important: this method is a combination of methods for the UpdateTimer, UpdateDisconnecting server, so do not call them as conflicts will occur.
+
+- `void SendBroadcast(ushort port, byte[] packet, int length)`
   - Sends a broadcast message if `EnableBroadcast` is `true`.
-  - ```csharp
-    Packet packet = Packet.Write();
-    client.SendBroadcast(packet, 8080);
-    ```
-    
-- `void SendUnconnected(Packet packet, EndPoint endPoint)`
+
+- `void SendUnconnected(EndPoint endPoint, byte[] packet, int length)`
   - Sends a message without establishing a connection.
-  - ```csharp
-    Packet packet = Packet.Write();
-    IPEndPoint remoteEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8080);
-    server.SendUnconnected(packet, remoteEndPoint);
-    ```
-  
+ 
+- `void SendBroadcast(ushort port, Packet packet)` `Extensions`
+  - Sends a broadcast message if `EnableBroadcast` is `true`.
+
+- `void SendUnconnected(EndPoint endPoint, Packet packet)` `Extensions`
+  - Sends a message without establishing a connection.
+
 ## Server
 
-The `Server` class has additional properties, methods, and events specific to server functionality:
-
-### Events
-
-- `Action OnStart`
-  - Invoked when the server starts.
-  - ```csharp
-    server.OnStart += HandleServerStart;
-
-    private void HandleServerStart()
-    {
-        Console.WriteLine("Server started.");
-    }
-    ```
-    
-- `Action OnStop`
-  - Invoked when the server stops.
-  - ```csharp
-    server.OnStop += HandleServerStop;
-
-    private void HandleServerStop()
-    {
-        Console.WriteLine("Server stopped.");
-    }
-    ```
-    
-- `Action<Peer> OnConnected`
-  - Invoked when a peer connects.
-  - ```csharp
-    server.OnConnected += HandlePeerConnected;
-
-    private void HandlePeerConnected(Peer peer)
-    {
-        Console.WriteLine($"Peer connected: {peer.EndPoint}");
-    }
-    ```
-    
-- `Action<Peer> OnDisconnected`
-  - Invoked when a peer disconnects.
-  - ```csharp
-    server.OnDisconnected += HandlePeerDisconnected;
-
-    private void HandlePeerDisconnected(Peer peer)
-    {
-        Console.WriteLine($"Peer disconnected: {peer.EndPoint}");
-    }
-    ```
-    
-- `Action<Packet, Peer> OnReceiveReliable`
-  - Invoked when a reliable message is received.
-  - ```csharp
-    server.OnReceiveReliable += HandleReceiveReliable;
-
-    private void HandleReceiveReliable(Packet packet, Peer peer)
-    {
-        Console.WriteLine("Reliable message received.");
-    }
-    ```
-    
-- `Action<Packet, Peer> OnReceiveUnreliable`
-  - Invoked when an unreliable message is received.
-  - ```csharp
-    server.OnReceiveUnreliable += HandleReceiveUnreliable;
-
-    private void HandleReceiveUnreliable(Packet packet, Peer peer)
-    {
-        Console.WriteLine("Unreliable message received.");
-    }
-    ```
-    
-- `Action<Packet, EndPoint> OnReceiveBroadcast`
-  - Invoked when a broadcast message is received.
-  - ```csharp
-    server.OnReceiveBroadcast += HandleReceiveBroadcast;
-
-    private void HandleReceiveBroadcast(Packet packet, EndPoint endPoint)
-    {
-        Console.WriteLine("Broadcast message received.");
-    }
-    ```
-    
-- `Action<Packet, EndPoint> OnReceiveUnconnected`
-  - Invoked when a message is received from an unconnected host.
-  - ```csharp
-    server.OnReceiveUnconnected += HandleReceiveUnconnected;
-
-    private void HandleReceiveUnconnected(Packet packet, EndPoint endPoint)
-    {
-        Console.WriteLine("Unconnected message received.");
-    }
-    ```
-  
-### Methods
-
-- `void SendAllReliable(Packet packet, Peer ignore = null)`
-  - Sends a reliable message to all peers, optionally ignoring one.
-  - ```csharp
-    Packet packet = Packet.Write();
-    server.SendAllReliable(packet, peer);
-    ```
-    
-- `void SendAllUnreliable(Packet packet, Peer ignore = null)`
-  - Sends an unreliable message to all peers, optionally ignoring one.
-  - ```csharp
-    Packet packet = Packet.Write();
-    server.SendAllUnreliable(packet, peer);
-    ```
-  
-## Client
-
-The `Client` class has properties, methods, and events specific to client functionality:
+  The `Server` class has additional properties, methods, and events specific to server functionality:
 
 ### Properties
 
-- `uint Rtt` `Read only`
-  - The round-trip time, measured every 500 milliseconds to check for connection status.
-  - ```csharp
-    uint rtt = client.Rtt;
-    Console.WriteLine($"Round-trip time: {rtt}");
-    ```
-    
-- `State State` `Read only`
-  - The connection state of the client.
-  - ```csharp
-    State state = client.State;
-    Console.WriteLine($"Client state: {state}");
-    ```
-  
-### Events
+- `uint TimeOut = 5000`
+  - The time in milliseconds after which you can assume that the client has disconnected from the network and can be disconnected.
 
-- `Action OnStart`
-  - Invoked when the client starts.
-  - ```csharp
-    client.OnStart += HandleClientStart;
+- `uint MaxConnections = 256`
+  - Maximum number of possible simultaneous connections.
+ 
+- `uint ConnectionsCount` `Read only`
+  - The current number of connections to the server.
 
-    private void HandleClientStart()
-    {
-        Console.WriteLine("Client started.");
-    }
-    ```
-    
-- `Action OnStop`
-  - Invoked when the client stops.
-  - ```csharp
-    client.OnStop += HandleClientStop;
+### Callbacks
 
-    private void HandleClientStop()
-    {
-        Console.WriteLine("Client stopped.");
-    }
-    ```
-    
-- `Action OnConnected`
-  - Invoked when the client successfully connects to the server.
-  - ```csharp
-    client.OnConnected += HandleClientConnected;
-
-    private void HandleClientConnected()
-    {
-        Console.WriteLine("Connected to server.");
-    }
-    ```
-    
-- `Action OnDisconnected`
-  - Invoked when the client disconnects.
-  - ```csharp
-    client.OnDisconnected += HandleClientDisconnected;
-
-    private void HandleClientDisconnected()
-    {
-        Console.WriteLine("Disconnected from server.");
-    }
-    ```
-  
-- `Action<Packet> OnReceiveReliable`
+- `Action<UdpPeer> OnConnected`
+  - Called when someone joins the server.
+ 
+- `Action<UdpPeer> OnDisconnected`
+  - Called when someone leaves the server.
+ 
+- `Action<UdpPeer, byte[]> OnReceiveReliable`
   - Invoked when a reliable message is received.
-  - ```csharp
-    client.OnReceiveReliable += HandleReceiveReliable;
-
-    private void HandleReceiveReliable(Packet packet)
-    {
-        Console.WriteLine("Reliable message received.");
-    }
-    ```
-    
-- `Action<Packet> OnReceiveUnreliable`
+ 
+- `Action<UdpPeer, byte[]> OnReceiveUnreliable`
   - Invoked when an unreliable message is received.
-  - ```csharp
-    client.OnReceiveUnreliable += HandleReceiveUnreliable;
 
-    private void HandleReceiveUnreliable(Packet packet)
-    {
-        Console.WriteLine("Unreliable message received.");
-    }
-    ```
-    
-- `Action<Packet, EndPoint> OnReceiveBroadcast`
-  - Invoked when a broadcast message is received.
-  - ```csharp
-    client.OnReceiveBroadcast += HandleReceiveBroadcast;
-
-    private void HandleReceiveBroadcast(Packet packet, EndPoint endPoint)
-    {
-        Console.WriteLine("Broadcast message received.");
-    }
-    ```
-    
-- `Action<Packet, EndPoint> OnReceiveUnconnected`
-  - Invoked when a message is received from an unconnected host.
-  - ```csharp
-    client.OnReceiveUnconnected += HandleReceiveUnconnected;
-
-    private void HandleReceiveUnconnected(Packet packet, EndPoint endPoint)
-    {
-        Console.WriteLine("Unconnected message received.");
-    }
-    ```
-  
 ### Methods
 
-- `void Connect(string ipAddress, ushort port)`
-  - `Important:` Must be called after `Start()` to establish a connection. Connects to a server.
-  - ```csharp
-    client.Connect("127.0.0.1", 8080);
-    ```
-    
+- `void Disconnect(uint peerId)`
+  - Forcibly disconnect from the client's server.
+ 
+- `void SendReliable(uint peerId, Packet packet)` `Extensions`
+  - Sends a reliable message to peer.
+ 
+- `void SendUnreliable(uint peerId, Packet packet)` `Extensions`
+  - Sends an unreliable message to peer.
+
+- `void SendReliable(uint peerId, byte[] packet)`
+  - Sends a reliable message to peer.
+ 
+- `void SendUnreliable(uint peerId, byte[] packet)`
+  - Sends an unreliable message to peer.
+ 
+- `void SendReliable(uint peerId, byte[] packet, int length, int offset = 0)`
+  - Sends a reliable message to peer.
+ 
+- `void SendUnreliable(uint peerId, byte[] packet, int length, int offset = 0)`
+  - Sends an unreliable message to peer.
+
+- `void SendAllReliable(Packet packet, uint ignoreId = 0)` `Extensions`
+  - Sends a reliable message to all peers, optionally ignoring one.
+
+- `void SendAllUnreliable(Packet packet, uint ignoreId = 0)` `Extensions`
+  - Sends an unreliable message to all peers, optionally ignoring one.
+
+- `void SendAllReliable(byte[] packet, uint ignoreId = 0)`
+  - Sends a reliable message to all peers, optionally ignoring one.
+
+- `void SendAllUnreliable(byte[] packet, uint ignoreId = 0)`
+  - Sends an unreliable message to all peers, optionally ignoring one.
+ 
+- `void SendAllReliable(byte[] packet, int length, uint ignoreId = 0)`
+  - Sends a reliable message to all peers, optionally ignoring one.
+
+- `void SendAllUnreliable(byte[] packet, int length, uint ignoreId = 0)`
+  - Sends an unreliable message to all peers, optionally ignoring one.
+ 
+- `void SendAllReliable(byte[] packet, int length, int offset, uint ignoreId = 0)`
+  - Sends a reliable message to all peers, optionally ignoring one.
+
+- `void SendAllUnreliable(byte[] packet, int length, int offset, uint ignoreId = 0)`
+  - Sends an unreliable message to all peers, optionally ignoring one.
+
+- `void UpdateTimer(uint deltaTime)`
+  - Updates only the timers.
+
+- `void UpdateDisconnecting()`
+  - Updates only the disconnecting peers. 
+
+## Client
+
+  The `Client` class has properties, methods, and events specific to client functionality:
+
+- `uint Id` `Read only`
+  - The client's ID is synchronized with the ID that was issued on the server.
+
+- `uint Rtt` `Read only`
+  - The round-trip time, measured every 1000 milliseconds to check for connection status.
+ 
+- `State State` `Read only`
+  - The connection state of the client.
+
+- `EndPoint EndPoint` `Read only`
+  - IP address of the server
+ 
+- `uint TimeOut = 5000`
+  - The time in milliseconds after which the connection to the server can be considered disconnected.
+
+### Callbacks
+
+- `Action OnConnected`
+  - Called when the connection is successful.
+ 
+- `Action OnDisconnected`
+  - Called in case of disconnection.
+ 
+- `Action<byte[]> OnReceiveReliable`
+  - Invoked when a reliable message is received.
+ 
+- `Action<byte[]> OnReceiveUnreliable`
+  - Invoked when an unreliable message is received.
+
+### Methods
+
+- `void Connect(string ipAddress, ushort port)` 
+  - Important: `Start()` must be called before `Connect()` for a correct connection attempt.
+ 
 - `void Disconnect()`
-  - Disconnects from the server and waits for a response.
-  - ```csharp
-    client.Disconnect();
-    ```
-    
-- `void Disconnected()`
+  - Notifies the server about the disconnection and then disconnects the connection.
+ 
+- `void QuietDisconnect()`
   - Immediately disconnects without notifying the server or stops any ongoing connection/disconnection actions.
-  - ```csharp
-    client.Disconnected();
-    ```
-  
-- `void SendReliable(Packet packet)`
+
+- `void SendReliable(Packet packet)` `Extensions`
+  - Sends a reliable message to the host.
+ 
+- `void SendUnreliable(Packet packet)` `Extensions`
+  - Sends an unreliable message to the host.
+
+- `void SendReliable(byte[] packet)`
   - Sends a reliable message to the server.
-  - ```csharp
-    Packet packet = Packet.Write();
-    client.SendReliable(packet);
-    ```
-    
-- `void SendUnreliable(Packet packet)`
+ 
+- `void SendUnreliable(byte[] packet)`
   - Sends an unreliable message to the server.
-  - ```csharp
-    Packet packet = Packet.Write();
-    client.SendUnreliable(packet);
-    ```
-  
+ 
+- `void SendReliable(byte[] packet, int length, int offset = 0)`
+  - Sends a reliable message to the server.
+ 
+- `void SendUnreliable(byte[] packet, int length, int offset = 0)`
+  - Sends an unreliable message to the server.
+
 ## Peer
 
 The `Peer` class is used in conjunction with the `Server` class for managing connected clients:
 
 ### Properties
 
+- `uint Id` `Read only`
+  - The peer's ID.
+
 - `uint Rtt` `Read only`
-  - The round-trip time, measured every 500 milliseconds to check for connection status.
-  - ```csharp
-    uint rtt = peer.Rtt;
-    Console.WriteLine($"Peer round-trip time: {rtt}");
-    ```
-    
+  - The round-trip time, measured every 1000 milliseconds to check for connection status.
+ 
 - `State State` `Read only`
-  - The connection state of the peer.
-  - ```csharp
-    State state = peer.State;
-    Console.WriteLine($"Peer state: {state}");
-    ```
+  - The connection state of the peer's.
 
 - `EndPoint EndPoint` `Read only`
-  - The end point of this peer.
-  - ```csharp
-    Console.WriteLine($"Peer EndPoint: {peer.EndPoint}");
-    ```
-  
+  - IP address of the host
+
 ### Methods
 
 - `void Disconnect()`
-  - Disconnects from the client and waits for a response.
-  - ```csharp
-    peer.Disconnect();
-    ```
-    
-- `void Disconnected()`
-  - Immediately disconnects without notifying the client or stops any ongoing connection/disconnection actions.
-  - ```csharp
-    peer.Disconnected();
-    ```
-  
+  - Notifies the host of the disconnection and then disconnects the connection.
+
+- `void QuietDisconnect()`
+  - Immediately disconnects without notifying the server or stops any ongoing connection/disconnection actions.
+
 - `void UpdateTimer(uint deltaTime)`
   - Updates the timers for this peer.
-  - Important: call it when you need to split peer updates across threads and do not call it when UpdatePeer or UpdateTimer is called because there will be conflicts.
-  - ```csharp
-    peer.UpdateTimer(10);
-    ```
-    
-- `void SendReliable(Packet packet)`
-  - Sends a reliable message to this peer.
-  - ```csharp
-    Packet packet = Packet.Write();
-    client.SendReliable(packet);
-    ```
-    
-- `void SendUnreliable(Packet packet)`
-  - Sends an unreliable message to this peer.
-  - ```csharp
-    Packet packet = Packet.Write();
-    client.SendUnreliable(packet);
-    ```
-  
+  - Important: call it when you need to split peer updates across threads and do not call it when TickUpdate or UpdateTimer is called because there will be conflicts.
+
+- `void SendReliable(Packet packet)` `Extensions`
+  - Sends a reliable message to the host.
+ 
+- `void SendUnreliable(Packet packet)` `Extensions`
+  - Sends an unreliable message to the host.
+
+- `void SendReliable(byte[] packet)`
+  - Sends a reliable message to the host.
+ 
+- `void SendUnreliable(byte[] packet)`
+  - Sends an unreliable message to the host.
+ 
+- `void SendReliable(byte[] packet, int length, int offset = 0)`
+  - Sends a reliable message to the host.
+ 
+- `void SendUnreliable(byte[] packet, int length, int offset = 0)`
+  - Sends an unreliable message to the host.
+
 # Packet
 
 The `Packet` class in the SimpleUDP library provides functionality to create, write, read, and manage packets of data. It supports various data types and ensures efficient handling of network data.
@@ -455,7 +300,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 - `byte[] Data`
   - The byte array that holds the packet data.
 
-## Static Methods
+## Methods
 
 - `static Packet.Write(ushort maxSizeData = MaxSizeData)`
   - Creates a new writable packet with the specified maximum data size.
@@ -463,9 +308,45 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
     Packet packet = Packet.Write();
     ```
 
+- `static Packet.Read(byte[] packet)`
+  - Create a package to read.
+  - ```csharp
+    void Handler(byte[] packet)
+    {
+        Packet packet = Packet.Read(packet);
+    }
+    ```
+
+- `static Packet.Read(byte[] packet, int length, int offset)`
+  - Create a package to read.
+  - ```csharp
+    void Handler(byte[] packet)
+    {
+        Packet packet = Packet.Read(packet, packet.Length, 0);
+    }
+    ```
+
+### Bool
+
+- `static Packet Bool(bool value, ushort maxSizeData = 256)`
+  - Creates a new packet and writes a bool value.
+  - ```csharp
+    Packet packet = Packet.Bool(true);
+    ```
+- `Packet Bool(bool value)`
+  - Writes a bool value to the packet.
+  - ```csharp
+    packet.Bool(true);
+    ```
+- `bool Bool()`
+  - Reads a bool value from the packet.
+  - ```csharp
+    bool value = packet.Bool();
+    ```
+
 ### Byte
 
-- `static Packet Byte(byte value, ushort maxSizeData = 64)`
+- `static Packet Byte(byte value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a byte value.
   - ```csharp
     Packet packet = Packet.Byte(1);
@@ -483,7 +364,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### SByte
 
-- `static Packet SByte(sbyte value, ushort maxSizeData = 64)`
+- `static Packet SByte(sbyte value, ushort maxSizeData = 256)`
   - Creates a new packet and writes an sbyte value.
   - ```csharp
     Packet packet = Packet.SByte(-1);
@@ -501,7 +382,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### Short
 
-- `static Packet Short(short value, ushort maxSizeData = 64)`
+- `static Packet Short(short value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a short value.
   - ```csharp
     Packet packet = Packet.Short(123);
@@ -519,7 +400,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### UShort
 
-- `static Packet UShort(ushort value, ushort maxSizeData = 64)`
+- `static Packet UShort(ushort value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a ushort value.
   - ```csharp
     Packet packet = Packet.UShort(123);
@@ -537,7 +418,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### Int
 
-- `static Packet Int(int value, ushort maxSizeData = 64)`
+- `static Packet Int(int value, ushort maxSizeData = 256)`
   - Creates a new packet and writes an int value.
   - ```csharp
     Packet packet = Packet.Int(123);
@@ -555,7 +436,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### UInt
 
-- `static Packet UInt(uint value, ushort maxSizeData = 64)`
+- `static Packet UInt(uint value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a uint value.
   - ```csharp
     Packet packet = Packet.UInt(123U);
@@ -573,7 +454,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### Long
 
-- `static Packet Long(long value, ushort maxSizeData = 64)`
+- `static Packet Long(long value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a long value.
   - ```csharp
     Packet packet = Packet.Long(123L);
@@ -591,7 +472,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### ULong
 
-- `static Packet ULong(ulong value, ushort maxSizeData = 64)`
+- `static Packet ULong(ulong value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a ulong value.
   - ```csharp
     Packet packet = Packet.ULong(123UL);
@@ -609,7 +490,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### Float
 
-- `static Packet Float(float value, ushort maxSizeData = 64)`
+- `static Packet Float(float value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a float value.
   - ```csharp
     Packet packet = Packet.Float(123.45f);
@@ -627,7 +508,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### Double
 
-- `static Packet Double(double value, ushort maxSizeData = 64)`
+- `static Packet Double(double value, ushort maxSizeData = 256)`
   - Creates a new packet and writes a double value.
   - ```csharp
     Packet packet = Packet.Double(123.45);
@@ -645,7 +526,7 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
 
 ### String
 
-- `static Packet String(string value, ushort maxSizeData = 256)`
+- `static Packet String(string value, ushort maxSizeData = MaxSizeData)`
   - Creates a new packet and writes a string value.
   - ```csharp
     Packet packet = Packet.String("Hello, world!");

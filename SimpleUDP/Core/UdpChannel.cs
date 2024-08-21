@@ -1,13 +1,8 @@
-// This file is provided under The MIT License as part of SimpleUDP.
-// Copyright (c) StrumDev
-// For additional information please see the included LICENSE.md file or view it on GitHub:
-// https://github.com/StrumDev/SimpleUDP/blob/main/LICENSE
-
 using System;
 using SimpleUDP.Utils;
 using System.Collections.Generic;
 
-namespace SimpleUDP.Core.Net
+namespace SimpleUDP.Core
 {
     public class UdpChannel
     {
@@ -53,7 +48,7 @@ namespace SimpleUDP.Core.Net
                 {
                     indexes.Push((byte)index);
                     pending[index] = new UdpPending(RawSend);
-                }    
+                }
             }  
         }
 
@@ -73,27 +68,27 @@ namespace SimpleUDP.Core.Net
             }
         }
         
-        internal void SendUnreliabe(byte[] packet, int length)
+        internal void SendUnreliable(byte[] packet, int length, int offset)
         {
             lock (locker)
             {
                 byte[] buffer = new byte[length + HeaderUnreliable];
                 
-                buffer[IndexHeader] = Header.Unreliable;
-                Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
+                buffer[IndexHeader] = UdpHeader.Unreliable;
+                Buffer.BlockCopy(packet, offset, buffer, HeaderUnreliable, length);
 
                 RawSend(buffer);   
             }
         }
 
-        internal void SendReliabe(byte[] packet, int length)
+        internal void SendReliable(byte[] packet, int length, int offset)
         {
             lock (locker)
             {
                 byte[] buffer = new byte[length + HeaderReliable];
                 
-                buffer[IndexHeader] = Header.Reliable;
-                Buffer.BlockCopy(packet, 0, buffer, HeaderReliable, length);
+                buffer[IndexHeader] = UdpHeader.Reliable;
+                Buffer.BlockCopy(packet, offset, buffer, HeaderReliable, length);
 
                 if (indexes.Count != 0)
                     SendPending(indexes.Pop(), buffer);
@@ -115,7 +110,7 @@ namespace SimpleUDP.Core.Net
         {
             lock (locker)
             {
-                RawSend(new byte[]{Header.ReliableAck, data[IndexAck]});
+                RawSend(new byte[]{UdpHeader.ReliableAck, data[IndexAck]});
 
                 byte index = GetIndex(data[IndexAck]);
                 

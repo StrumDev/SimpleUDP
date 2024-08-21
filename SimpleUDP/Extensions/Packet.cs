@@ -1,8 +1,3 @@
-// This file is provided under The MIT License as part of SimpleUDP.
-// Copyright (c) StrumDev
-// For additional information please see the included LICENSE.md file or view it on GitHub:
-// https://github.com/StrumDev/SimpleUDP/blob/main/LICENSE
-
 using System;
 using System.Text;
 using SimpleUDP.Utils;
@@ -14,18 +9,20 @@ namespace SimpleUDP
         public int Offset => read;
         public int Length => write;
         
-        public const ushort MaxSizeData = 1432;
         public byte[] Data { get; private set; }
+        
+        public const ushort MaxSizeData = 1432;
         
         private int write, read;
         
-        internal Packet() { }
-        
         public static Packet Write(ushort maxSizeData = MaxSizeData) =>
             new Packet(new byte[maxSizeData]);
+
+        public static Packet Read(byte[] packet) =>
+            new Packet(packet, packet.Length, 0);
         
-        internal static Packet Read(byte[] data, int length, int offset) =>
-            new Packet(data, length, offset); 
+        public static Packet Read(byte[] packet, int length, int offset) =>
+            new Packet(packet, length, offset);
 
         internal Packet(byte[] data, int length = 0, int offset = 0)
         {
@@ -33,20 +30,26 @@ namespace SimpleUDP
             read = offset;
             write = length;
         }
-
-        internal Packet Copy(byte[] data, int length = 0, int offset = 0)
+        
+        public Packet Reset()
         {
             read = 0;
-            write = (length - offset);
-            
-            Data = new byte[length - offset];
-            Buffer.BlockCopy(data, offset, Data, 0, length - offset);
+            write = 0;
+
             return this;
         }
 
+        public byte[] GetArray(int offset = 0)
+        {
+            byte[] buffer = new byte[Length];
+            Buffer.BlockCopy(Data, offset, buffer, 0, Length);
+            
+            return buffer;
+        }   
+
     #region Bool
 
-        public static Packet Bool(bool value, ushort maxSizeData = 64) =>
+        public static Packet Bool(bool value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Bool(value);
 
         public Packet Bool(bool value)
@@ -58,7 +61,7 @@ namespace SimpleUDP
         public bool Bool()
         {
             bool value = Converter.GetBool(Data, read);
-            read += sizeof(byte);
+            read += sizeof(bool);
 
             return value;
         }
@@ -67,7 +70,7 @@ namespace SimpleUDP
 
     #region Byte
 
-        public static Packet Byte(byte value, ushort maxSizeData = 64) =>
+        public static Packet Byte(byte value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Byte(value);
 
         public Packet Byte(byte value)
@@ -88,7 +91,7 @@ namespace SimpleUDP
 
     #region SByte
 
-        public static Packet SByte(sbyte value, ushort maxSizeData = 64) =>
+        public static Packet SByte(sbyte value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).SByte(value);
 
         public Packet SByte(sbyte value)
@@ -109,7 +112,7 @@ namespace SimpleUDP
 
     #region Short
 
-        public static Packet Short(short value, ushort maxSizeData = 64) =>
+        public static Packet Short(short value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Short(value);
 
         public Packet Short(short value)
@@ -130,7 +133,7 @@ namespace SimpleUDP
 
     #region UShort
 
-        public static Packet UShort(ushort value, ushort maxSizeData = 64) =>
+        public static Packet UShort(ushort value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).UShort(value);
 
         public Packet UShort(ushort value)
@@ -151,7 +154,7 @@ namespace SimpleUDP
 
     #region Int
 
-        public static Packet Int(int value, ushort maxSizeData = 64) =>
+        public static Packet Int(int value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Int(value);
 
         public Packet Int(int value)
@@ -172,7 +175,7 @@ namespace SimpleUDP
 
     #region UInt
 
-        public static Packet UInt(uint value, ushort maxSizeData = 64) =>
+        public static Packet UInt(uint value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).UInt(value);
 
         public Packet UInt(uint value)
@@ -193,7 +196,7 @@ namespace SimpleUDP
 
     #region Long
 
-        public static Packet Long(long value, ushort maxSizeData = 64) =>
+        public static Packet Long(long value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Long(value);
 
         public Packet Long(long value)
@@ -214,7 +217,7 @@ namespace SimpleUDP
 
     #region ULong
 
-        public static Packet ULong(ulong value, ushort maxSizeData = 64) =>
+        public static Packet ULong(ulong value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).ULong(value);
 
         public Packet ULong(ulong value)
@@ -235,7 +238,7 @@ namespace SimpleUDP
 
     #region Float
 
-        public static Packet Float(float value, ushort maxSizeData = 64) =>
+        public static Packet Float(float value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Float(value);
 
         public Packet Float(float value)
@@ -256,7 +259,7 @@ namespace SimpleUDP
 
     #region Double
 
-        public static Packet Double(double value, ushort maxSizeData = 64) =>
+        public static Packet Double(double value, ushort maxSizeData = 256) =>
             new Packet(new byte[maxSizeData]).Double(value);
 
         public Packet Double(double value)
@@ -277,8 +280,8 @@ namespace SimpleUDP
 
     #region String
 
-        public static Packet String(string value, ushort maxSizeData = 256) =>
-            new Packet(new byte[maxSizeData]).String(value);
+        public static Packet String(string value, ushort maxSizeData = MaxSizeData) =>
+            new Packet(new byte[maxSizeData], 5).String(value);
 
         public Packet String(string value)
         {
@@ -287,16 +290,22 @@ namespace SimpleUDP
 
             Buffer.BlockCopy(buffer, 0 , Data, write, buffer.Length);
             write += buffer.Length;
+            
             return this;
         }
 
         public string String()
         {
-            ushort length = UShort();
-            string value = Encoding.UTF8.GetString(Data, read, length);
+            if (Length > 2)
+            {
+                ushort length = UShort();
+                string value = Encoding.UTF8.GetString(Data, read, length);
+                
+                read += length;
+                return value;
+            }
             
-            read += length;
-            return value;
+            return "";
         }
 
     #endregion
