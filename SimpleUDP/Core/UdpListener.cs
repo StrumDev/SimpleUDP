@@ -180,8 +180,6 @@ namespace SimpleUDP.Core
             return buffer;
         }
 
-
-
         protected void HandlerBroadcast(byte[] data, int length, EndPoint endPoint)
         {
             lock (locker)
