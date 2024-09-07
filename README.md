@@ -22,6 +22,10 @@ Documentation: [here](https://github.com/StrumDev/SimpleUDP/blob/main/Documentat
 
 Discord server: [here](https://discord.gg/x2yUKGmfgY)
 
+### I will be very grateful for your support.
+
+[![Donate](https://github.com/user-attachments/assets/67c6c744-4ab4-411f-ac4c-3b32e1be0895)](https://www.paypal.com/donate/?hosted_button_id=7LPMECG4E9EH4)
+
 # SimpleUDP - Unity demo game.
 
 https://github.com/StrumDev/SimpleUDP/assets/114677727/d5517072-a254-4171-a6ff-986ff0f4704a
