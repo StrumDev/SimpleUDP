@@ -263,10 +263,6 @@ The `Peer` class is used in conjunction with the `Server` class for managing con
 - `void QuietDisconnect()`
   - Immediately disconnects without notifying the server or stops any ongoing connection/disconnection actions.
 
-- `void UpdateTimer(uint deltaTime)`
-  - Updates the timers for this peer.
-  - Important: call it when you need to split peer updates across threads and do not call it when TickUpdate or UpdateTimer is called because there will be conflicts.
-
 - `void SendReliable(Packet packet)` `Extensions`
   - Sends a reliable message to the host.
  

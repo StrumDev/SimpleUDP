@@ -278,10 +278,36 @@ namespace SimpleUDP
 
     #endregion
 
+    #region Char
+        
+        public static Packet Char(char value, ushort maxSizeData = 512) =>
+            new Packet(new byte[maxSizeData]).Char(value);
+
+        public Packet Char(char value)
+        {
+            byte[] buffer = BitConverter.GetBytes(value);
+           
+            Data[write] = buffer[0];
+            Data[write + 1] = buffer[1];
+
+            write += 2;
+            return this;
+        }
+
+        public char Char()
+        {
+            char value = BitConverter.ToChar(Data, read);
+            
+            read += 2;
+            return value;
+        }
+
+    #endregion
+
     #region String
 
         public static Packet String(string value, ushort maxSizeData = MaxSizeData) =>
-            new Packet(new byte[maxSizeData], 5).String(value);
+            new Packet(new byte[maxSizeData]).String(value);
 
         public Packet String(string value)
         {

@@ -111,7 +111,31 @@ namespace SimpleUDP.Core
                             OnRawHandler(buffer, size, sender);
                         }
                     }
-                    catch (Exception) { return; }        
+                    catch (Exception e) 
+                    {  
+                        throw e; 
+                        //return; 
+                    }        
+                }   
+            }
+        }
+
+        public void ReceiveTest()
+        {
+            lock (locker)
+            {
+                if (IsRunning && socket.Available != 0)
+                {
+                    //try
+                    {
+                        //for (int i = 0; i < socket.Available; i++)
+                        {
+                            int size = socket.ReceiveFrom(buffer, ref sender);
+
+                            OnRawHandler(buffer, size, sender);
+                        }
+                    }
+                    //catch (Exception) { return; }        
                 }   
             }
         }
@@ -179,8 +203,6 @@ namespace SimpleUDP.Core
             
             return buffer;
         }
-
-
 
         protected void HandlerBroadcast(byte[] data, int length, EndPoint endPoint)
         {

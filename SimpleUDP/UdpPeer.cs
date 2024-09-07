@@ -138,8 +138,8 @@ namespace SimpleUDP
                 Id = peerId;
                 State = State.Connected;
                 
+                channel.Initialize();
                 SendPing();
-                channel.Initialize(); 
             }
         }
 

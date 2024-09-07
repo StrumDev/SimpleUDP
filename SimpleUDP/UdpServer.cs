@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using SimpleUDP.Core;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace SimpleUDP
 {
@@ -16,19 +17,22 @@ namespace SimpleUDP
         public uint TimeOut = 5000;
         public uint MaxConnections = 256;
 
-        public uint ConnectionsCount => (uint)Connections.Count;
+        public uint ConnectionsCount => (uint)connections.Count;
 
-        public Dictionary<uint, UdpPeer> Connections;
+        public ReadOnlyDictionary<uint, UdpPeer> Connections;
 
         private object locker = new object();
         private Stack<UdpPeer> disconnectedPeers;
         private Dictionary<EndPoint, UdpPeer> peers;
+        private Dictionary<uint, UdpPeer> connections;
 
         public UdpServer()
         {
             disconnectedPeers = new Stack<UdpPeer>();
             peers = new Dictionary<EndPoint, UdpPeer>();
-            Connections = new Dictionary<uint, UdpPeer>();
+            connections = new Dictionary<uint, UdpPeer>();
+
+            Connections = new ReadOnlyDictionary<uint, UdpPeer>(connections);
         }
 
         public void Disconnect(uint peerId)
@@ -49,7 +53,7 @@ namespace SimpleUDP
 
         public void SendReliable(uint peerId, byte[] packet, int length, int offset = 0)
         {
-            lock (Connections)
+            lock (locker)
             {
                 if (Connections.TryGetValue(peerId, out UdpPeer peer))
                     peer.SendReliable(packet, length, offset);   
@@ -58,7 +62,7 @@ namespace SimpleUDP
 
         public void SendUnreliable(uint peerId, byte[] packet, int length, int offset = 0)
         {
-            lock (Connections)
+            lock (locker)
             {
                 if (Connections.TryGetValue(peerId, out UdpPeer peer))
                     peer.SendUnreliable(packet, length, offset);   
@@ -87,7 +91,7 @@ namespace SimpleUDP
 
         public void SendAllReliable(byte[] packet, int length, int offset, uint ignoreId = 0)
         {
-            lock (Connections)
+            lock (locker)
             {
                 foreach (UdpPeer peer in Connections.Values)
                 {
@@ -99,7 +103,7 @@ namespace SimpleUDP
 
         public void SendAllUnreliable(byte[] packet, int length, int offset, uint ignoreId = 0)
         {
-            lock (Connections)
+            lock (locker)
             {
                 foreach (UdpPeer peer in Connections.Values)
                 {
@@ -234,13 +238,19 @@ namespace SimpleUDP
 
         private void HandlerConnected(EndPoint endPoint)
         {
-            if (peers.TryGetValue(endPoint, out UdpPeer peer))
+            lock (locker)
             {
-                peer.SetConnected(peer.Id);
-                peer.OnLostConnection = LostConnection;
+                if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                {
+                    if (Connections.ContainsKey(peer.Id))
+                        return;
 
-                Connections.Add(peer.Id, peer);
-                OnPeerConnected(peer);
+                    peer.SetConnected(peer.Id);
+                    peer.OnLostConnection = LostConnection;
+
+                    connections.Add(peer.Id, peer);
+                    OnPeerConnected(peer);
+                }                
             }
         }
 
@@ -299,7 +309,7 @@ namespace SimpleUDP
         {
             disconnectedPeers.Push(udpPeer);
             
-            Connections.Remove(udpPeer.Id);
+            connections.Remove(udpPeer.Id);
             OnPeerDisconnected(udpPeer);
         }
         
@@ -320,7 +330,7 @@ namespace SimpleUDP
                     peer.SetDisconnected();
                     
                 peers.Clear();
-                Connections.Clear();
+                connections.Clear();
                 disconnectedPeers.Clear();
                 
                 base.OnListenerStopped();

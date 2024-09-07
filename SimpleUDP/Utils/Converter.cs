@@ -133,40 +133,54 @@ namespace SimpleUDP.Utils
 
         public static short GetShort(byte[] array, int startIndex)
         {
-           return (short)(array[startIndex] | (array[startIndex + 1] << 8));
+           return (short)(array[startIndex] | 
+            ((short)array[startIndex + 1] << 8));
         }
 
         public static ushort GetUShort(byte[] array, int startIndex)
         {
-            return (ushort)(array[startIndex] | (array[startIndex + 1] << 8));
+            return (ushort)(array[startIndex] | 
+            ((ushort)array[startIndex + 1] << 8));
         }
 
         public static int GetInt(byte[] array, int startIndex)
         {
-            return (int)(array[startIndex] | (array[startIndex + 1] << 8) | 
-            (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24));
+            return (int)array[startIndex] |
+            ((int)array[startIndex + 1] << 8 ) |
+            ((int)array[startIndex + 2] << 16) |
+            ((int)array[startIndex + 3] << 24);
         } 
 
         public static uint GetUInt(byte[] array, int startIndex)
         {
-            return (uint)(array[startIndex] | (array[startIndex + 1] << 8) | 
-            (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24));
+            return (uint)array[startIndex] |
+            ((uint)array[startIndex + 1] << 8 ) |
+            ((uint)array[startIndex + 2] << 16) |
+            ((uint)array[startIndex + 3] << 24);
         }
 
         public static long GetLong(byte[] array, int startIndex)
         {
-            return (long)(array[startIndex] | (array[startIndex + 1] << 8) | 
-            (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24) | 
-            (array[startIndex + 4] << 32) | (array[startIndex + 5] << 40) | 
-            (array[startIndex + 6] << 48) | (array[startIndex + 7] << 56));
+            return (long)array[startIndex] |
+            ((long)array[startIndex + 1] << 8 ) |
+            ((long)array[startIndex + 2] << 16) |
+            ((long)array[startIndex + 3] << 24) |
+            ((long)array[startIndex + 4] << 32) |
+            ((long)array[startIndex + 5] << 40) |
+            ((long)array[startIndex + 6] << 48) |
+            ((long)array[startIndex + 7] << 56);
         }
 
         public static ulong GetULong(byte[] array, int startIndex)
         {
-            return (ulong)(array[startIndex] | (array[startIndex + 1] << 8) | 
-            (array[startIndex + 2] << 16) | (array[startIndex + 3] << 24) | 
-            (array[startIndex + 4] << 32) | (array[startIndex + 5] << 40) | 
-            (array[startIndex + 6] << 48) | (array[startIndex + 7] << 56));
+            return (ulong)array[startIndex] |
+            ((ulong)array[startIndex + 1] << 8 ) |
+            ((ulong)array[startIndex + 2] << 16) |
+            ((ulong)array[startIndex + 3] << 24) |
+            ((ulong)array[startIndex + 4] << 32) |
+            ((ulong)array[startIndex + 5] << 40) |
+            ((ulong)array[startIndex + 6] << 48) |
+            ((ulong)array[startIndex + 7] << 56);
         }
 
         public static float GetFloat(byte[] array, int startIndex)

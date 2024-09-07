@@ -25,12 +25,14 @@ namespace SimpleUDP.Core
         private SerialBuffer serial;
         private UdpPending[] pending;
         private Dictionary<byte, UdpPending> inPending;
-
+        
+        private bool isInitialize;
         private object locker = new object();
 
         public UdpChannel(Action<byte[]> rawSend)
         {
             RawSend = rawSend;
+            isInitialize = false;
         }
 
         internal void Initialize()
@@ -49,6 +51,8 @@ namespace SimpleUDP.Core
                     indexes.Push((byte)index);
                     pending[index] = new UdpPending(RawSend);
                 }
+
+                isInitialize = true;
             }  
         }
 
@@ -101,8 +105,11 @@ namespace SimpleUDP.Core
         {
             lock (locker)
             {
-                foreach (UdpPending pending in inPending.Values)
-                    pending.UpdateTimer(deltaTime, Interval);
+                if (isInitialize)
+                {
+                    foreach (UdpPending pending in inPending.Values)
+                        pending.UpdateTimer(deltaTime, Interval);
+                }
             }
         }
 
