@@ -56,7 +56,7 @@ namespace SimpleUDP.Core
             }  
         }
 
-        internal void ClearAll()
+        internal void ClearChannel()
         {
             lock (locker)
             {
@@ -67,7 +67,9 @@ namespace SimpleUDP.Core
                     
                     serial.Clear();
                     indexes.Clear(); 
-                    inPending.Clear();    
+                    inPending.Clear();
+
+                    isInitialize = false;
                 }
             }
         }

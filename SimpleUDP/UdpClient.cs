@@ -12,6 +12,9 @@ namespace SimpleUDP
         public Action<byte[]> OnReceiveReliable;
         public Action<byte[]> OnReceiveUnreliable;
 
+        public Action<EndPoint, byte[]> OnReceiveBroadcast;
+        public Action<EndPoint, byte[]> OnReceiveUnconnected;
+
         public uint TimeOut = 5000;
         
         public uint Id => udpPeer.Id;
@@ -126,6 +129,39 @@ namespace SimpleUDP
             }
         }
 
+        public void SendBroadcast(ushort port, byte[] packet, int length)
+        {
+            lock (locker)
+            {
+                if (IsRunning && EnableBroadcast && port != 0)
+                {
+                    byte[] buffer = new byte[length + HeaderUnreliable];
+                    
+                    buffer[IndexHeader] = UdpHeader.Broadcast;
+                    Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
+
+                    SendTo(new IPEndPoint(IPAddress.Broadcast, port), buffer);
+                }
+                else throw new Exception("It is not possible to send a Broadcast message if EnableBroadcast = false or Port = 0.");
+            }
+        }
+
+        public void SendUnconnected(EndPoint endPoint, byte[] packet, int length)
+        {
+            lock (locker)
+            {
+                if (IsRunning)
+                {
+                    byte[] buffer = new byte[length + HeaderUnreliable];
+                    
+                    buffer[IndexHeader] = UdpHeader.Unconnected;
+                    Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
+
+                    SendTo(endPoint, buffer);                      
+                }
+            }
+        }
+
         protected sealed override void OnRawHandler(byte[] data, int length, EndPoint endPoint)
         {
             switch (data[IndexHeader])
@@ -199,6 +235,26 @@ namespace SimpleUDP
                 udpPeer.ClearAck(data);
         }
 
+        private void HandlerBroadcast(byte[] data, int length, EndPoint endPoint)
+        {
+            lock (locker)
+            {
+                byte[] buffer = new byte[length - HeaderUnreliable];
+                Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
+                OnReceiveBroadcast?.Invoke(endPoint, buffer);
+            }
+        }
+
+        private void HandlerUnconnected(byte[] data, int length, EndPoint endPoint)
+        {
+            lock (locker)
+            {
+                byte[] buffer = new byte[length - HeaderUnreliable];
+                Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
+                OnReceiveUnconnected?.Invoke(endPoint, buffer);
+            }
+        }
+
         private void LostConnection(UdpPeer udpPeer)
         {
             udpPeer.SetDisconnected();
@@ -210,6 +266,14 @@ namespace SimpleUDP
             IPAddress address = Dns.GetHostAddresses(host)[0];
 
             remoteEndPoint = new IPEndPoint(address, port);
+        }
+
+        private byte[] CopyPacket(byte[] data, int length, int offset)
+        {
+            byte[] buffer = new byte[length - offset];
+            Buffer.BlockCopy(data, offset, buffer, 0, length - offset);
+            
+            return buffer;
         }
 
         protected override void OnListenerStopped()

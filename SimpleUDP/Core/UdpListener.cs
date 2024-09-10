@@ -12,9 +12,6 @@ namespace SimpleUDP.Core
         public Action OnStarted;
         public Action OnStopped;
 
-        public Action<EndPoint, byte[]> OnReceiveBroadcast;
-        public Action<EndPoint, byte[]> OnReceiveUnconnected;
-
         public bool IsRunning { get; private set; }
 
         public ushort ReceiveBufferSize = 2048;
@@ -45,21 +42,6 @@ namespace SimpleUDP.Core
         {
             watch = new Stopwatch();
             sender = new IPEndPoint(IPAddress.Any, 0);
-        }
-
-        public bool IsAvailablePort(ushort port)
-        {
-            lock (locker)
-            {
-                try
-                {
-                    using (UdpClient udpPort = new UdpClient(port))
-                        udpPort.Close();
-                    
-                    return true;
-                }
-                catch (SocketException) { return false; }  
-            }     
         }
 
         public void Start(ushort port = 0, bool enableBroadcast = false)
@@ -111,31 +93,7 @@ namespace SimpleUDP.Core
                             OnRawHandler(buffer, size, sender);
                         }
                     }
-                    catch (Exception e) 
-                    {  
-                        throw e; 
-                        //return; 
-                    }        
-                }   
-            }
-        }
-
-        public void ReceiveTest()
-        {
-            lock (locker)
-            {
-                if (IsRunning && socket.Available != 0)
-                {
-                    //try
-                    {
-                        //for (int i = 0; i < socket.Available; i++)
-                        {
-                            int size = socket.ReceiveFrom(buffer, ref sender);
-
-                            OnRawHandler(buffer, size, sender);
-                        }
-                    }
-                    //catch (Exception) { return; }        
+                    catch (Exception) { return; }      
                 }   
             }
         }
@@ -146,6 +104,21 @@ namespace SimpleUDP.Core
             
             watch.Restart();
             OnTickUpdate(elapsed);
+        }
+
+        public bool IsAvailablePort(ushort port)
+        {
+            lock (locker)
+            {
+                try
+                {
+                    using (UdpClient udpPort = new UdpClient(port))
+                        udpPort.Close();
+                    
+                    return true;
+                }
+                catch (SocketException) { return false; }  
+            }     
         }
         
         public void Stop()
@@ -160,67 +133,6 @@ namespace SimpleUDP.Core
 
                     OnListenerStopped();
                 }
-            }
-        }
-
-        public void SendBroadcast(ushort port, byte[] packet, int length)
-        {
-            lock (locker)
-            {
-                if (IsRunning && EnableBroadcast && port != 0)
-                {
-                    byte[] buffer = new byte[length + HeaderUnreliable];
-                    
-                    buffer[IndexHeader] = UdpHeader.Broadcast;
-                    Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
-
-                    SendTo(new IPEndPoint(IPAddress.Broadcast, port), buffer);
-                }
-                else throw new Exception("It is not possible to send a Broadcast message if EnableBroadcast = false or Port = 0.");
-            }
-        }
-
-        public void SendUnconnected(EndPoint endPoint, byte[] packet, int length)
-        {
-            lock (locker)
-            {
-                if (IsRunning)
-                {
-                    byte[] buffer = new byte[length + HeaderUnreliable];
-                    
-                    buffer[IndexHeader] = UdpHeader.Unconnected;
-                    Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
-
-                    SendTo(endPoint, buffer);                      
-                }
-            }
-        }
-
-        protected byte[] CopyPacket(byte[] data, int length, int offset)
-        {
-            byte[] buffer = new byte[length - offset];
-            Buffer.BlockCopy(data, offset, buffer, 0, length - offset);
-            
-            return buffer;
-        }
-
-        protected void HandlerBroadcast(byte[] data, int length, EndPoint endPoint)
-        {
-            lock (locker)
-            {
-                byte[] buffer = new byte[length - HeaderUnreliable];
-                Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
-                OnReceiveBroadcast?.Invoke(endPoint, buffer);
-            }
-        }
-
-        protected void HandlerUnconnected(byte[] data, int length, EndPoint endPoint)
-        {
-            lock (locker)
-            {
-                byte[] buffer = new byte[length - HeaderUnreliable];
-                Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
-                OnReceiveUnconnected?.Invoke(endPoint, buffer);
             }
         }
         

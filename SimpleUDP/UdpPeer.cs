@@ -149,7 +149,7 @@ namespace SimpleUDP
             {
                 ClearPending();
 
-                channel.ClearAll();
+                channel.ClearChannel();
                 State = State.NoConnect;
             }
         }

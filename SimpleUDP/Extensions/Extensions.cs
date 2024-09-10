@@ -7,20 +7,6 @@ namespace SimpleUDP
     public static class Extensions
     {
 
-#region UdpListener
-
-        public static void SendBroadcast(this UdpListener listener, ushort port, Packet packet)
-        {
-            listener.SendBroadcast(port, packet.Data, packet.Length);
-        }
-
-        public static void SendUnconnected(this UdpListener listener, EndPoint endPoint, Packet packet)
-        {
-            listener.SendUnconnected(endPoint, packet.Data, packet.Length);
-        }
-
-#endregion
-
 #region UdpServer
 
         public static void SendReliable(this UdpServer server, uint peerId, Packet packet)
@@ -43,6 +29,16 @@ namespace SimpleUDP
             server.SendAllUnreliable(packet.Data, packet.Length, 0, ignoreId);
         }
 
+        public static void SendBroadcast(this UdpServer server, ushort port, Packet packet)
+        {
+            server.SendBroadcast(port, packet.Data, packet.Length);
+        }
+
+        public static void SendUnconnected(this UdpServer server, EndPoint endPoint, Packet packet)
+        {
+            server.SendUnconnected(endPoint, packet.Data, packet.Length);
+        }
+
 #endregion
 
 #region UdpClient
@@ -55,6 +51,16 @@ namespace SimpleUDP
         public static void SendUnreliable(this UdpClient client, Packet packet)
         {
             client.SendUnreliable(packet.Data, packet.Length, 0);
+        }
+
+        public static void SendBroadcast(this UdpClient client, ushort port, Packet packet)
+        {
+            client.SendBroadcast(port, packet.Data, packet.Length);
+        }
+
+        public static void SendUnconnected(this UdpClient client, EndPoint endPoint, Packet packet)
+        {
+            client.SendUnconnected(endPoint, packet.Data, packet.Length);
         }
 
 #endregion
