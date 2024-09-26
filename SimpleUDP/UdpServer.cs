@@ -19,18 +19,19 @@ namespace SimpleUDP
 
         public uint TimeOut = 5000;
         public uint MaxConnections = 256;
-
-        public uint ConnectionsCount => (uint)connections.Count;
+        public string KeyConnection = "";
 
         public ReadOnlyDictionary<uint, UdpPeer> Connections;
-
-        private object locker = new object();
+        public uint ConnectionsCount => (uint)connections.Count;
+        
+        private uint sequenceNumberId;
+        
         private Stack<UdpPeer> disconnectedPeers;
         private Dictionary<EndPoint, UdpPeer> peers;
         private Dictionary<uint, UdpPeer> connections;
 
         public UdpServer()
-        {
+        {    
             disconnectedPeers = new Stack<UdpPeer>();
             peers = new Dictionary<EndPoint, UdpPeer>();
             connections = new Dictionary<uint, UdpPeer>();
@@ -38,10 +39,16 @@ namespace SimpleUDP
             Connections = new ReadOnlyDictionary<uint, UdpPeer>(connections);
         }
 
+        protected override void OnListenerStarted()
+        {
+            AdjustBufferSizes(ServerKilobytes);
+            base.OnListenerStarted();
+        }
+
         public void Disconnect(uint peerId)
         {
             if (Connections.TryGetValue(peerId, out UdpPeer peer))
-                peer.Disconnect();
+                peer.SendDisconnect(Reason.Kicked);
         }
 
         public void SendReliable(uint peerId, byte[] packet)
@@ -56,20 +63,14 @@ namespace SimpleUDP
 
         public void SendReliable(uint peerId, byte[] packet, int length, int offset = 0)
         {
-            lock (locker)
-            {
-                if (Connections.TryGetValue(peerId, out UdpPeer peer))
-                    peer.SendReliable(packet, length, offset);   
-            }
+            if (Connections.TryGetValue(peerId, out UdpPeer peer))
+                peer.SendReliable(packet, length, offset);   
         }
 
         public void SendUnreliable(uint peerId, byte[] packet, int length, int offset = 0)
         {
-            lock (locker)
-            {
-                if (Connections.TryGetValue(peerId, out UdpPeer peer))
-                    peer.SendUnreliable(packet, length, offset);   
-            }
+            if (Connections.TryGetValue(peerId, out UdpPeer peer))
+                peer.SendUnreliable(packet, length, offset);   
         }
 
         public void SendAllReliable(byte[] packet, uint ignoreId = 0)
@@ -118,13 +119,10 @@ namespace SimpleUDP
 
         protected sealed override void OnTickUpdate(uint deltaTime)
         {
-            lock (locker)
+            if (IsRunning)
             {
-                if (IsRunning)
-                {
-                    UpdateTimer(deltaTime);
-                    UpdateDisconnecting();
-                }
+                UpdateTimer(deltaTime);
+                UpdateDisconnecting();
             }
         }
 
@@ -148,24 +146,27 @@ namespace SimpleUDP
 
         private void AcceptPing(EndPoint endPoint)
         {
-            lock (locker)
-            {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
-                    SendTo(endPoint, UdpHeader.Pong);
-                else
-                    SendTo(endPoint, UdpHeader.Disconnected);
-            }
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                SendTo(endPoint, UdpHeader.Pong);
+            else
+                SendTo(endPoint, UdpHeader.Disconnected, 0);
         }
 
-        private void AcceptConnect(EndPoint endPoint)
+        private void AcceptConnect(byte[] data, int length, EndPoint endPoint)
         {
             lock (locker)
             {
+                if (!UdpPeer.KeyMatching(KeyConnection, data, length, UdpPeer.HeaderSize))
+                {
+                    SendTo(endPoint, UdpHeader.Disconnected, (byte)Reason.IncorrectKey);
+                    return;
+                }
+
                 if (!peers.ContainsKey(endPoint))
                 {
                     if (peers.Count >= MaxConnections)
                     {
-                        SendTo(endPoint, UdpHeader.Disconnected);
+                        SendTo(endPoint, UdpHeader.Disconnected, (byte)Reason.ServerIsFull);
                         return;
                     }
 
@@ -174,58 +175,51 @@ namespace SimpleUDP
                         TimeOut = TimeOut,
                         OnLostConnection = disconnectedPeers.Push,
                     };
-                    
-                    udpPeer.SendConnect(endPoint);
+
                     peers.Add(endPoint, udpPeer);
+                    udpPeer.SendConnect(endPoint, GetNewId(), KeyConnection);
                 }
             }
         }
 
-        private void AcceptDisconnect(EndPoint endPoint)
+        private void AcceptDisconnect(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
-            {
-                HandlerDiconnected(endPoint);
-                SendTo(endPoint, UdpHeader.Disconnected);
-            }
+            byte reason = data[UdpIndex.Reason];
+
+            HandlerDiconnected(data, length, endPoint);
+            SendTo(endPoint, UdpHeader.Disconnected, reason);
         }
 
         public void SendBroadcast(ushort port, byte[] packet, int length)
         {
-            lock (locker)
+            if (IsRunning && EnableBroadcast && port != 0)
             {
-                if (IsRunning && EnableBroadcast && port != 0)
-                {
-                    byte[] buffer = new byte[length + HeaderUnreliable];
-                    
-                    buffer[IndexHeader] = UdpHeader.Broadcast;
-                    Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
+                byte[] buffer = new byte[length + UdpIndex.Unreliable];
+                
+                buffer[UdpIndex.Header] = UdpHeader.Broadcast;
+                Buffer.BlockCopy(packet, 0, buffer, UdpIndex.Unreliable, length);
 
-                    SendTo(new IPEndPoint(IPAddress.Broadcast, port), buffer);
-                }
-                else throw new Exception("It is not possible to send a Broadcast message if EnableBroadcast = false or Port = 0.");
+                SendTo(new IPEndPoint(IPAddress.Broadcast, port), buffer);
             }
+            else throw new Exception("It is not possible to send a Broadcast message if EnableBroadcast = false or Port = 0.");
         }
 
         public void SendUnconnected(EndPoint endPoint, byte[] packet, int length)
         {
-            lock (locker)
+            if (IsRunning)
             {
-                if (IsRunning)
-                {
-                    byte[] buffer = new byte[length + HeaderUnreliable];
-                    
-                    buffer[IndexHeader] = UdpHeader.Unconnected;
-                    Buffer.BlockCopy(packet, 0, buffer, HeaderUnreliable, length);
+                byte[] buffer = new byte[length + UdpIndex.Unreliable];
+                
+                buffer[UdpIndex.Header] = UdpHeader.Unconnected;
+                Buffer.BlockCopy(packet, 0, buffer, UdpIndex.Unreliable, length);
 
-                    SendTo(endPoint, buffer);                      
-                }
+                SendTo(endPoint, buffer);                      
             }
         }
         
         protected sealed override void OnRawHandler(byte[] data, int length, EndPoint endPoint)
         {
-            switch (data[IndexHeader])
+            switch (data[UdpIndex.Header])
             {
                 case UdpHeader.Unreliable:
                     HandlerUnreliable(data, length, endPoint);
@@ -243,16 +237,16 @@ namespace SimpleUDP
                     HandlerPong(endPoint);
                     return;
                 case UdpHeader.Connect:
-                    AcceptConnect(endPoint);
+                    AcceptConnect(data, length, endPoint);
                     return;
                 case UdpHeader.Connected:
                     HandlerConnected(endPoint);
                     return;
                 case UdpHeader.Disconnect:
-                    AcceptDisconnect(endPoint);
+                    AcceptDisconnect(data, length, endPoint);
                     return;
                 case UdpHeader.Disconnected:
-                    HandlerDiconnected(endPoint);
+                    HandlerDiconnected(data, length, endPoint);
                     return;
                 case UdpHeader.Broadcast:
                     HandlerBroadcast(data, length, endPoint);
@@ -265,11 +259,8 @@ namespace SimpleUDP
 
         private void HandlerPong(EndPoint endPoint)
         {
-            lock (locker)
-            {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
-                    peer.HandlerPong();
-            }
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                peer.HandlerPong();
         }
 
         private void HandlerConnected(EndPoint endPoint)
@@ -290,7 +281,7 @@ namespace SimpleUDP
             }
         }
 
-        private void HandlerDiconnected(EndPoint endPoint)
+        private void HandlerDiconnected(byte[] data, int length, EndPoint endPoint)
         {
             lock (locker)
             {
@@ -298,6 +289,8 @@ namespace SimpleUDP
                 {
                     if (peer.State != State.NoConnect)
                     {
+                        peer.ReasonDisconnection = (Reason)data[UdpIndex.Reason];
+                        
                         peer.SetDisconnected();
                         LostConnection(peer);
                     }
@@ -307,58 +300,43 @@ namespace SimpleUDP
 
         private void HandlerReliable(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
             {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                if (peer.IsNewAck(data))
                 {
-                    if (peer.IsNewAck(data))
-                    {
-                        byte[] buffer = CopyPacket(data, length, HeaderReliable);
-                        OnPeerReceiveReliable(peer, buffer);
-                    }  
-                }                
-            }
+                    byte[] buffer = CopyPacket(data, length, UdpIndex.Reliable);
+                    OnPeerReceiveReliable(peer, buffer);
+                }  
+            }                
         }
 
         private void HandlerUnreliable(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
             {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
-                {
-                    byte[] buffer = CopyPacket(data, length, HeaderUnreliable);
-                    OnPeerReceiveUnreliable(peer, buffer);
-                }
+                byte[] buffer = CopyPacket(data, length, UdpIndex.Unreliable);
+                OnPeerReceiveUnreliable(peer, buffer);
             }
         }
 
         private void HandlerReliableAck(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
-            {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
-                    peer.ClearAck(data);
-            }
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                peer.ClearAck(data);
         }
 
         private void HandlerBroadcast(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
-            {
-                byte[] buffer = new byte[length - HeaderUnreliable];
-                Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
-                OnReceiveBroadcast?.Invoke(endPoint, buffer);
-            }
+            byte[] buffer = new byte[length - UdpIndex.Unreliable];
+            Buffer.BlockCopy(data, UdpIndex.Unreliable, buffer, 0, length - UdpIndex.Unreliable);
+            OnReceiveBroadcast?.Invoke(endPoint, buffer);
         }
 
         private void HandlerUnconnected(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
-            {
-                byte[] buffer = new byte[length - HeaderUnreliable];
-                Buffer.BlockCopy(data, HeaderUnreliable, buffer, 0, length - HeaderUnreliable);
-                OnReceiveUnconnected?.Invoke(endPoint, buffer);
-            }
+            byte[] buffer = new byte[length - UdpIndex.Unreliable];
+            Buffer.BlockCopy(data, UdpIndex.Unreliable, buffer, 0, length - UdpIndex.Unreliable);
+            OnReceiveUnconnected?.Invoke(endPoint, buffer);
         }
 
         private void LostConnection(UdpPeer udpPeer)
@@ -376,6 +354,16 @@ namespace SimpleUDP
                 if (peers.ContainsKey(udpPeer.EndPoint))
                     peers.Remove(udpPeer.EndPoint);
             }
+        }
+
+        private uint GetNewId()
+        {
+            uint newId = ++sequenceNumberId;
+
+            while (connections.ContainsKey(newId)) // (;
+                newId = ++sequenceNumberId; 
+
+            return newId;
         }
 
         private byte[] CopyPacket(byte[] data, int length, int offset)

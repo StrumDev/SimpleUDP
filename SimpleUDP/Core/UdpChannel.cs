@@ -5,24 +5,19 @@ using System.Collections.Generic;
 namespace SimpleUDP.Core
 {
     public class UdpChannel
-    {
-        internal const byte IndexHeader = 0;
-        internal const byte IndexAck = 1;
-        internal const byte HeaderUnreliable = 1;
-        internal const byte HeaderReliable = 2;
-        
-        internal const byte MaxPending = 128;
-
+    {   
         internal uint Interval = 50;
         internal ushort MaxQueue = 64;
         internal ushort CapacityQueue = 128;
         
         internal Action<byte[]> RawSend;
+        
+        internal const byte MaxPending = 128;
 
         private byte[] sendAck;
         private byte[] receiveAck;
         private Stack<byte> indexes;
-        private SerialBuffer serial;
+        private UdpBuffer<byte[]> udpBuffer;
         private UdpPending[] pending;
         private Dictionary<byte, UdpPending> inPending;
         
@@ -44,7 +39,7 @@ namespace SimpleUDP.Core
                 pending = new UdpPending[MaxPending];
                 indexes = new Stack<byte>(MaxPending);
                 inPending = new Dictionary<byte, UdpPending>();
-                serial = new SerialBuffer(MaxQueue, CapacityQueue);
+                udpBuffer = new UdpBuffer<byte[]>(MaxQueue, CapacityQueue);
 
                 for (int index = MaxPending - 1; index >= 0; index--)
                 {
@@ -62,44 +57,41 @@ namespace SimpleUDP.Core
             {
                 if (inPending != null)
                 {
+                    isInitialize = false;
+
                     foreach (UdpPending pending in pending)
                         pending.ClearPacket();
                     
-                    serial.Clear();
                     indexes.Clear(); 
+                    udpBuffer.Clear();
                     inPending.Clear();
-
-                    isInitialize = false;
                 }
             }
         }
         
         internal void SendUnreliable(byte[] packet, int length, int offset)
         {
-            lock (locker)
-            {
-                byte[] buffer = new byte[length + HeaderUnreliable];
-                
-                buffer[IndexHeader] = UdpHeader.Unreliable;
-                Buffer.BlockCopy(packet, offset, buffer, HeaderUnreliable, length);
+            byte[] buffer = new byte[length + UdpIndex.Unreliable];
+            
+            buffer[UdpIndex.Header] = UdpHeader.Unreliable;
+            Buffer.BlockCopy(packet, offset, buffer, UdpIndex.Unreliable, length);
 
-                RawSend(buffer);   
-            }
+            RawSend(buffer);   
         }
 
         internal void SendReliable(byte[] packet, int length, int offset)
         {
             lock (locker)
             {
-                byte[] buffer = new byte[length + HeaderReliable];
+                byte[] buffer = new byte[length + UdpIndex.Reliable];
                 
-                buffer[IndexHeader] = UdpHeader.Reliable;
-                Buffer.BlockCopy(packet, offset, buffer, HeaderReliable, length);
+                buffer[UdpIndex.Header] = UdpHeader.Reliable;
+                Buffer.BlockCopy(packet, offset, buffer, UdpIndex.Reliable, length);
 
                 if (indexes.Count != 0)
                     SendPending(indexes.Pop(), buffer);
                 else
-                    serial.AddElement(buffer);    
+                    udpBuffer.AddElement(buffer);    
             }
         }
 
@@ -111,57 +103,51 @@ namespace SimpleUDP.Core
                 {
                     foreach (UdpPending pending in inPending.Values)
                         pending.UpdateTimer(deltaTime, Interval);
-                }
+                }   
             }
         }
 
         internal bool IsNewAck(byte[] data)
         {
-            lock (locker)
-            {
-                RawSend(new byte[]{UdpHeader.ReliableAck, data[IndexAck]});
+            RawSend(new byte[]{UdpHeader.ReliableAck, data[UdpIndex.Ack]});
 
-                byte index = GetIndex(data[IndexAck]);
-                
-                if (receiveAck[index] != data[IndexAck])
-                {
-                    receiveAck[index] = data[IndexAck];
-                    return true;
-                }
-                else return false;    
+            byte index = GetIndex(data[UdpIndex.Ack]);
+            
+            if (receiveAck[index] != data[UdpIndex.Ack])
+            {
+                receiveAck[index] = data[UdpIndex.Ack];
+                return true;
             }
+            else return false;
         }
 
         internal void ClearAck(byte[] data)
         {
             lock (locker)
             {
-                byte index = GetIndex(data[IndexAck]);
+                byte index = GetIndex(data[UdpIndex.Ack]);
 
                 if (inPending.ContainsKey(index))
                 {
                     pending[index].ClearPacket();
 
-                    if (serial.Count == 0)
+                    if (udpBuffer.Count == 0)
                     {
                         indexes.Push(index);
                         inPending.Remove(index);
                     }
-                    else SendPending(index, serial.GetElement());
+                    else SendPending(index, udpBuffer.GetElement());
                 }       
             }
         }
         
         private void SendPending(byte index, byte[] buffer)
         {
-            lock (locker)
-            {
-                NextAck(index, ref sendAck[index], out buffer[IndexAck]);
-                pending[index].SendPacket(buffer);
+            NextAck(index, ref sendAck[index], out buffer[UdpIndex.Ack]);
+            pending[index].SendPacket(buffer);
 
-                if (!inPending.ContainsKey(index))
-                    inPending.Add(index, pending[index]);    
-            }
+            if (!inPending.ContainsKey(index))
+                inPending.Add(index, pending[index]);    
         }
 
         private void NextAck(byte index, ref byte ack, out byte newAck)

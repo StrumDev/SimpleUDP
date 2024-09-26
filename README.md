@@ -1,11 +1,17 @@
-# SimpleUDP v0.4.0
+# SimpleUDP v0.5.0
 
-SimpleUDP is a simple network library that provides reliable and unreliable messages.
+### SimpleUDP is a simple network library that provides reliable and unreliable messages.
 
-This is my first project that I spent a lot of time on.
+ - This is my first project on which I spent a considerable amount of time to understand how the network works. This network library is primarily designed to create virtual connections and transmit reliable data over the UDP protocol. The project is not yet fully completed, so I do not know how frequently updates will be released. This project is not something powerful or efficient; I made it to learn how to finish projects rather than start and not complete them.
+
 I developed this project myself, starting without knowledge of C# and how the network works, so please be understanding.
 
-The project is still raw, and there may be radical changes in functionality and variable names from version to version, as I am still learning on my own, which is very difficult for me, so please understand.
+### The project at this stage is already suitable for use in small commercial applications and games.
+ - I don't plan to make any major changes to the functionality in the future, mostly bug fixes and performance improvements.
+
+### Where it can be used.
+ - It's up to you to decide, it's a fairly small library that may be suitable for small projects.
+ - I don't try to be better than existing similar off-the-shelf solutions, because I do it to learn.
 
 Documentation: [here](https://github.com/StrumDev/SimpleUDP/blob/main/Documentation.md)
 

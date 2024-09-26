@@ -45,7 +45,17 @@ namespace SimpleUDP
             Buffer.BlockCopy(Data, offset, buffer, 0, Length);
             
             return buffer;
-        }   
+        }
+
+        private bool CanWrite(int size)
+        {
+            return write + size <= Data.Length;
+        }
+
+        private bool CanRead(int size)
+        {
+            return read + size <= Length;
+        }
 
     #region Bool
 
@@ -54,13 +64,19 @@ namespace SimpleUDP
 
         public Packet Bool(bool value)
         {
-            write += Converter.SetBool(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeBool))
+                throw new IndexOutOfRangeException();
+
+            write += UdpConverter.SetBool(value, Data, write);
             return this;
         }
 
         public bool Bool()
         {
-            bool value = Converter.GetBool(Data, read);
+            if (!CanRead(UdpConverter.SizeBool))
+                return false;
+            
+            bool value = UdpConverter.GetBool(Data, read);
             read += sizeof(bool);
 
             return value;
@@ -75,13 +91,19 @@ namespace SimpleUDP
 
         public Packet Byte(byte value)
         {
-            write += Converter.SetByte(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeByte))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetByte(value, Data, write);
             return this;
         }
 
         public byte Byte()
         {
-            byte value = Converter.GetByte(Data, read);
+            if (!CanRead(UdpConverter.SizeByte))
+                return 0;
+
+            byte value = UdpConverter.GetByte(Data, read);
             read += sizeof(byte);
 
             return value;
@@ -96,13 +118,19 @@ namespace SimpleUDP
 
         public Packet SByte(sbyte value)
         {
-            write += Converter.SetSByte(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeSByte))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetSByte(value, Data, write);
             return this;
         }
 
         public sbyte SByte()
         {
-            sbyte value = Converter.GetSByte(Data, read);
+            if (!CanRead(UdpConverter.SizeSByte))
+                return 0;
+            
+            sbyte value = UdpConverter.GetSByte(Data, read);
             read += sizeof(sbyte);
 
             return value;
@@ -117,13 +145,19 @@ namespace SimpleUDP
 
         public Packet Short(short value)
         {
-            write += Converter.SetShort(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeShort))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetShort(value, Data, write);
             return this;
         }
 
         public short Short()
         {
-            short value = Converter.GetShort(Data, read);
+            if (!CanRead(UdpConverter.SizeShort))
+                return 0;
+            
+            short value = UdpConverter.GetShort(Data, read);
             read += sizeof(short);
 
             return value;
@@ -138,13 +172,19 @@ namespace SimpleUDP
 
         public Packet UShort(ushort value)
         {
-            write += Converter.SetUShort(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeUShort))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetUShort(value, Data, write);
             return this;
         }
 
         public ushort UShort()
         {
-            ushort value = Converter.GetUShort(Data, read);
+            if (!CanRead(UdpConverter.SizeUShort))
+                return 0;
+            
+            ushort value = UdpConverter.GetUShort(Data, read);
             read += sizeof(ushort);
 
             return value;
@@ -159,13 +199,19 @@ namespace SimpleUDP
 
         public Packet Int(int value)
         {
-            write += Converter.SetInt(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeInt))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetInt(value, Data, write);
             return this;
         }
 
         public int Int()
         {
-            int value = Converter.GetInt(Data, read);
+            if (!CanRead(UdpConverter.SizeInt))
+                return 0;
+
+            int value = UdpConverter.GetInt(Data, read);
             read += sizeof(int);
 
             return value;
@@ -180,13 +226,19 @@ namespace SimpleUDP
 
         public Packet UInt(uint value)
         {
-            write += Converter.SetUInt(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeUInt))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetUInt(value, Data, write);
             return this;
         }
 
         public uint UInt()
         {
-            uint value = Converter.GetUInt(Data, read);
+            if (!CanRead(UdpConverter.SizeUInt))
+                return 0;
+            
+            uint value = UdpConverter.GetUInt(Data, read);
             read += sizeof(uint);
 
             return value;
@@ -201,13 +253,19 @@ namespace SimpleUDP
 
         public Packet Long(long value)
         {
-            write += Converter.SetLong(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeLong))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetLong(value, Data, write);
             return this;
         }
 
         public long Long()
         {
-            long value = Converter.GetLong(Data, read);
+            if (!CanRead(UdpConverter.SizeLong))
+                return 0;
+
+            long value = UdpConverter.GetLong(Data, read);
             read += sizeof(long);
 
             return value;
@@ -222,13 +280,19 @@ namespace SimpleUDP
 
         public Packet ULong(ulong value)
         {
-            write += Converter.SetULong(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeULong))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetULong(value, Data, write);
             return this;
         }
 
         public ulong ULong()
         {
-            ulong value = Converter.GetULong(Data, read);
+            if (!CanRead(UdpConverter.SizeULong))
+                return 0;
+            
+            ulong value = UdpConverter.GetULong(Data, read);
             read += sizeof(ulong);
 
             return value;
@@ -243,13 +307,19 @@ namespace SimpleUDP
 
         public Packet Float(float value)
         {
-            write += Converter.SetFloat(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeFloat))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
+            write += UdpConverter.SetFloat(value, Data, write);
             return this;
         }
 
         public float Float()
         {
-            float value = Converter.GetFloat(Data, read);
+            if (!CanRead(UdpConverter.SizeFloat))
+                return 0;
+            
+            float value = UdpConverter.GetFloat(Data, read);
             read += sizeof(float);
 
             return value;
@@ -264,13 +334,19 @@ namespace SimpleUDP
 
         public Packet Double(double value)
         {
-            write += Converter.SetDouble(value, Data, write);
+            if (!CanWrite(UdpConverter.SizeDouble))
+                throw new IndexOutOfRangeException();
+            
+            write += UdpConverter.SetDouble(value, Data, write);
             return this;
         }
 
         public double Double()
         {
-            double value = Converter.GetDouble(Data, read);
+            if (!CanRead(UdpConverter.SizeDouble))
+                return 0;
+            
+            double value = UdpConverter.GetDouble(Data, read);
             read += sizeof(double);
 
             return value;
@@ -285,6 +361,9 @@ namespace SimpleUDP
 
         public Packet Char(char value)
         {
+            if (!CanWrite(UdpConverter.SizeChar))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
+            
             byte[] buffer = BitConverter.GetBytes(value);
            
             Data[write] = buffer[0];
@@ -296,6 +375,9 @@ namespace SimpleUDP
 
         public char Char()
         {
+            if (!CanRead(UdpConverter.SizeChar))
+                return ' ';
+            
             char value = BitConverter.ToChar(Data, read);
             
             read += 2;
@@ -311,27 +393,29 @@ namespace SimpleUDP
 
         public Packet String(string value)
         {
-            byte[] buffer = Encoding.UTF8.GetBytes(value);
-            UShort((ushort)buffer.Length);
-
-            Buffer.BlockCopy(buffer, 0 , Data, write, buffer.Length);
-            write += buffer.Length;
+            if (!CanWrite(value.Length * UdpConverter.SizeChar))
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
             
+            byte[] buffer = Encoding.UTF8.GetBytes(value);
+
+            UShort((ushort)buffer.Length);
+            Buffer.BlockCopy(buffer, 0 , Data, write, buffer.Length);
+            
+            write += buffer.Length;
             return this;
         }
 
         public string String()
         {
-            if (Length > 2)
-            {
-                ushort length = UShort();
-                string value = Encoding.UTF8.GetString(Data, read, length);
-                
-                read += length;
-                return value;
-            }
+            ushort count = UShort();
+
+            if (count == 0 || !CanRead(count))
+                return "";
             
-            return "";
+            string value = Encoding.UTF8.GetString(Data, read, count);
+            
+            read += count;
+            return value;
         }
 
     #endregion

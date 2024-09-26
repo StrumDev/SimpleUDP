@@ -13,27 +13,26 @@ namespace SimpleUDP.Core
         public Action OnStopped;
 
         public bool IsRunning { get; private set; }
+        public ushort LocalPort { get; private set; }
+        public EndPoint LocalEndPoint { get; private set; }
 
         public ushort ReceiveBufferSize = 2048;
         
         public bool EnableBroadcast => socket.EnableBroadcast;
         
-        public ushort LocalPort => (ushort)LocalEndPoint.Port;
-        public IPEndPoint LocalEndPoint => (IPEndPoint)socket.LocalEndPoint;
-        
         public int AvailablePackages => IsRunning ? socket.Available : 0;
         public bool SocketPoll => IsRunning ? socket.Poll(500000, SelectMode.SelectRead) : false; //500000 => 0.5s
+        
+        protected const int OneKilobyte = 1024;
+        protected const int ClientKilobytes = 64;
+        protected const int ServerKilobytes = 1024;
 
         private Socket socket;
         private EndPoint sender;
         private Stopwatch watch;
 
         private byte[] buffer;
-        private object locker = new object();
-        
-        protected const byte IndexHeader = 0;
-        protected const byte HeaderReliable = 2;
-        protected const byte HeaderUnreliable = 1;
+        protected object locker = new object();
 
         // SioUdpConnreset = IOC_IN | IOC_VENDOR | 12
         private const int SioUdpConnreset = -1744830452;
@@ -52,19 +51,35 @@ namespace SimpleUDP.Core
                 {
                     socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
                     
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                        socket.IOControl(SioUdpConnreset, new byte[] {0}, null);
+                    socket.Blocking = true;
+                    socket.EnableBroadcast = enableBroadcast; 
                     
-                    buffer = new byte[ReceiveBufferSize];
-
-                    socket.EnableBroadcast = enableBroadcast;
-                    socket.Bind(new IPEndPoint(IPAddress.Any, port));
+                    BindSocket(new IPEndPoint(IPAddress.Any, port));
                     
-                    IsRunning = true;
-
                     OnListenerStarted();
                 }
             }
+        }
+
+        protected void AdjustBufferSizes(int kilobytes)
+        {
+            socket.SendBufferSize = OneKilobyte * kilobytes;
+            socket.ReceiveBufferSize = OneKilobyte * kilobytes;
+        }
+
+        private void BindSocket(IPEndPoint endPoint)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                socket.IOControl(SioUdpConnreset, new byte[] {0}, null);
+            
+            socket.Bind(endPoint);
+
+            buffer = new byte[ReceiveBufferSize];
+            
+            LocalPort = (ushort)((IPEndPoint)socket.LocalEndPoint).Port;
+            LocalEndPoint = (IPEndPoint)socket.LocalEndPoint;
+            
+            IsRunning = true;
         }
         
         protected void SendTo(EndPoint endPoint, params byte[] data)
@@ -80,22 +95,18 @@ namespace SimpleUDP.Core
 
         public void Receive()
         {
-            lock (locker)
+            if (IsRunning)
             {
-                if (IsRunning && socket.Available != 0)
+                try
                 {
-                    try
+                    while (socket.Available != 0)
                     {
-                        for (int i = 0; i < socket.Available; i++)
-                        {
-                            int size = socket.ReceiveFrom(buffer, ref sender);
-
-                            OnRawHandler(buffer, size, sender);
-                        }
+                        int size = socket.ReceiveFrom(buffer, ref sender);
+                        OnRawHandler(buffer, size, sender);
                     }
-                    catch (Exception) { return; }      
-                }   
-            }
+                }
+                catch (Exception) { return; }      
+            }   
         }
 
         public void TickUpdate()
@@ -108,17 +119,14 @@ namespace SimpleUDP.Core
 
         public bool IsAvailablePort(ushort port)
         {
-            lock (locker)
+            try
             {
-                try
-                {
-                    using (UdpClient udpPort = new UdpClient(port))
-                        udpPort.Close();
-                    
-                    return true;
-                }
-                catch (SocketException) { return false; }  
-            }     
+                using (UdpClient udpPort = new UdpClient(port))
+                    udpPort.Close();
+                
+                return true;
+            }
+            catch (SocketException) { return false; }
         }
         
         public void Stop()
@@ -127,19 +135,21 @@ namespace SimpleUDP.Core
             {
                 if (IsRunning)
                 {
-                    watch.Stop();
-                    socket.Close(); 
                     IsRunning = false;
+
+                    watch.Stop();
+                    socket.Close();
 
                     OnListenerStopped();
                 }
             }
         }
-        
+
+        protected virtual void OnTickUpdate(uint deltaTime) { }
+
         protected virtual void OnListenerStarted() { OnStarted?.Invoke(); }
         protected virtual void OnListenerStopped() { OnStopped?.Invoke(); }
         
-        protected virtual void OnTickUpdate(uint deltaTime) { }
         protected virtual void OnRawHandler(byte[] data, int length, EndPoint endPoint) { }
     }
 

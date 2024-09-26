@@ -9,7 +9,9 @@ namespace SimpleUDP.Examples
         public string IpAddress = "127.0.0.1";
         public ushort Port = 12700;
         
-        public ushort BroadcastPort = 12700;
+        public string Key = "TestKey";
+        
+        public ushort SendBroadcastPort = 12700;
 
         public uint TimeOut = 5000;
         public bool Broadcast = true;
@@ -19,6 +21,7 @@ namespace SimpleUDP.Examples
         private void Start()
         {
             client = new UdpClient();
+            client.KeyConnection = Key;
             
             client.OnStarted = OnStarted;
             client.OnStopped = OnStopped;
@@ -107,7 +110,7 @@ namespace SimpleUDP.Examples
             Packet packet = Packet.Write();
             packet.String("Hello, Broadcast from client!");
 
-            client.SendBroadcast(BroadcastPort, packet);
+            client.SendBroadcast(SendBroadcastPort, packet);
         }
 
         public void SendUnconnected()
@@ -130,12 +133,12 @@ namespace SimpleUDP.Examples
 
         private void OnConnected()
         {
-            Debug.Log($"[Client] OnConnected to: {client.EndPoint}");
+            Debug.Log($"[Client] OnConnected to: {client.EndPoint}, Id: {client.Id}");
         }
 
         private void OnDisconnected()
         {
-            Debug.Log($"[Client] OnDisconnected from: {client.EndPoint}");
+            Debug.Log($"[Client] OnDisconnected from: {client.EndPoint}, Id: {client.Id}, Reason: {client.ReasonDisconnection}");
         }
 
         private void OnReceiveReliable(byte[] packet)

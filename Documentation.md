@@ -3,21 +3,22 @@
 ## Overview
 SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for both .NET applications and Unity projects. It supports both server and client functionality, with features for reliable and unreliable messaging.
 
-### This project is still raw, so I do not recommend using it in commercial projects.
+### The project at this stage is already suitable for use in small commercial applications and games.
+ - I don't plan to make any major changes to the functionality in the future, mostly bug fixes and performance improvements.
 
-Docs-[General](#General)
+**Version:** 0.5.0
 
-Docs-[Server](#Server)
+[General](#General)
 
-Docs-[Client](#Client)
+[Server](#Server)
 
-Docs-[Peer](#Peer)
+[Client](#Client)
 
-Docs-[Packet](#Packet)
+[Peer](#Peer)
 
-License-[here](#License)
+[Packet](#Packet)
 
-**Version:** 0.4.0
+[License](#License)
 
 ## General
 
@@ -104,7 +105,10 @@ License-[here](#License)
 
 - `uint MaxConnections = 256`
   - Maximum number of possible simultaneous connections.
- 
+
+- `string KeyConnection = ""`
+  - Server key, when clients try to establish a connection to the server, they must have the correct key for the server to allow the connection.
+
 - `uint ConnectionsCount` `Read only`
   - The current number of connections to the server.
 
@@ -179,6 +183,12 @@ License-[here](#License)
 
   The `Client` class has properties, methods, and events specific to client functionality:
 
+- `uint TimeOut = 5000`
+  - The time in milliseconds after which the connection to the server can be considered disconnected.
+
+- `string KeyConnection = ""`
+  - The client's key must be correct as on the server to attempt to establish a connection.
+
 - `uint Id` `Read only`
   - The client's ID is synchronized with the ID that was issued on the server.
 
@@ -190,9 +200,9 @@ License-[here](#License)
 
 - `EndPoint EndPoint` `Read only`
   - IP address of the server
- 
-- `uint TimeOut = 5000`
-  - The time in milliseconds after which the connection to the server can be considered disconnected.
+
+- `Reason ReasonDisconnection` `Read only`
+  - The reason why the client was disconnected from the server.
 
 ### Callbacks
 
@@ -254,6 +264,9 @@ The `Peer` class is used in conjunction with the `Server` class for managing con
 
 - `EndPoint EndPoint` `Read only`
   - IP address of the host
+ 
+- `Reason ReasonDisconnection` `Read only`
+  - The reason why the peer was disconnected from the host.
 
 ### Methods
 
@@ -262,6 +275,10 @@ The `Peer` class is used in conjunction with the `Server` class for managing con
 
 - `void QuietDisconnect()`
   - Immediately disconnects without notifying the server or stops any ongoing connection/disconnection actions.
+
+- `void UpdateTimer(uint deltaTime)`
+  - Updates the timers for this peer.
+  - Important: call it when you need to split peer updates across threads and do not call it when TickUpdate or UpdateTimer is called because there will be conflicts.
 
 - `void SendReliable(Packet packet)` `Extensions`
   - Sends a reliable message to the host.
@@ -518,6 +535,24 @@ The `Packet` class in the SimpleUDP library provides functionality to create, wr
   - Reads a double value from the packet.
   - ```csharp
     double value = packet.Double();
+    ```
+
+### Char
+
+- `static Packet Char(char value, ushort maxSizeData = MaxSizeData)`
+  - Creates a new packet and writes a char value.
+  - ```csharp
+    Packet packet = Packet.Char('C');
+    ```
+- `Packet Char(char value)`
+  - Writes a char value to the packet.
+  - ```csharp
+    packet.Char('C');
+    ```
+- `string Char()`
+  - Reads a char value from the packet.
+  - ```csharp
+    char value = packet.Char();
     ```
 
 ### String

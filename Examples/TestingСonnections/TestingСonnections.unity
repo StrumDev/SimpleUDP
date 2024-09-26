@@ -122,7 +122,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &774522096
+--- !u!1 &99353082
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -130,26 +130,35 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 774522099}
-  - component: {fileID: 774522098}
+  - component: {fileID: 99353085}
+  - component: {fileID: 99353084}
+  - component: {fileID: 99353083}
   m_Layer: 0
-  m_Name: Main Camera
+  m_Name: Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &774522098
+--- !u!81 &99353083
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 99353082}
+  m_Enabled: 1
+--- !u!20 &99353084
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 774522096}
+  m_GameObject: {fileID: 99353082}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.114542544, g: 0.42347938, b: 0.735849, a: 0}
+  m_BackGroundColor: {r: 0.11372549, g: 0.42352942, b: 0.735849, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -171,7 +180,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1
+  far clip plane: 1000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -190,13 +199,13 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &774522099
+--- !u!4 &99353085
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 774522096}
+  m_GameObject: {fileID: 99353082}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: -10}
@@ -205,7 +214,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1644417068
+--- !u!1 &1067805704
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -213,9 +222,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1644417069}
-  - component: {fileID: 1644417071}
-  - component: {fileID: 1644417070}
+  - component: {fileID: 1067805705}
+  - component: {fileID: 1067805707}
+  - component: {fileID: 1067805706}
   m_Layer: 0
   m_Name: Network
   m_TagString: Untagged
@@ -223,13 +232,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1644417069
+--- !u!4 &1067805705
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1644417068}
+  m_GameObject: {fileID: 1067805704}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -238,45 +247,41 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1644417070
+--- !u!114 &1067805706
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1644417068}
+  m_GameObject: {fileID: 1067805704}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db9647ef94bee2e4dae7cf46cf565008, type: 3}
+  m_Script: {fileID: 11500000, guid: 2cc46c41eee469145bb76aab88cf88fe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   IpAddress: 127.0.0.1
   Port: 12700
-  Key: key
-  SendBroadcastPort: 12700
-  TimeOut: 5000
-  Broadcast: 1
---- !u!114 &1644417071
+  "Max\u0421onnection\u0421reation": 1024
+  "Delay\u0421reation\u0421onnection": 100
+  Clients: []
+--- !u!114 &1067805707
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1644417068}
+  m_GameObject: {fileID: 1067805704}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4e6f3d55d7543b4d82507157d764e4f, type: 3}
+  m_Script: {fileID: 11500000, guid: e5aaf412373ab4e46b38444ce1e0f004, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Port: 12700
-  Key: key
-  MaxConnections: 256
-  TimeOut: 5000
-  Broadcast: 1
-  Online: 0
+  MaxConnections: 1024
+  Connections: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 774522099}
-  - {fileID: 1644417069}
+  - {fileID: 99353085}
+  - {fileID: 1067805705}

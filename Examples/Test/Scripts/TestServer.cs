@@ -7,6 +7,7 @@ namespace SimpleUDP.Examples
     public class TestServer : MonoBehaviour
     {
         public ushort Port = 12700;
+        public string Key = "TestKey";
         public ushort MaxConnections = 256;
 
         public uint TimeOut = 5000;
@@ -15,11 +16,13 @@ namespace SimpleUDP.Examples
         public uint Online;
 
         public UdpServer server;
+        private UdpPeer udpPeer;
 
         private void Start()
         {
             server = new UdpServer();
-            
+            server.KeyConnection = Key;
+
             server.OnStarted = OnStarted;
             server.OnStopped = OnStopped;
 
@@ -45,6 +48,9 @@ namespace SimpleUDP.Examples
                 if (GUILayout.Button("Stop Server"))
                     server.Stop();
                 
+                if (udpPeer != null && GUILayout.Button("Disconnect"))
+                    server.Disconnect(udpPeer.Id);
+                
                 if (GUILayout.Button("Send All Reliable"))
                     SendAllReliable();
 
@@ -68,7 +74,7 @@ namespace SimpleUDP.Examples
         public void SendAllReliable()
         {
             Packet packet = Packet.Write();
-            packet.String("Hello, reliable from server!");
+            packet.String("Hello, Reliable from server!");
 
             server.SendAllReliable(packet);
         }
@@ -76,7 +82,7 @@ namespace SimpleUDP.Examples
         public void SendAllUnreliable()
         {
             Packet packet = Packet.Write();
-            packet.String("Hello, unreliable from server!");
+            packet.String("Hello, Unreliable from server!");
 
             server.SendAllUnreliable(packet);
         }
@@ -93,12 +99,14 @@ namespace SimpleUDP.Examples
 
         private void OnConnected(UdpPeer peer)
         {
-            Debug.Log($"[Server] OnConnected: {peer.EndPoint}");
+            udpPeer = peer;
+            Debug.Log($"[Server] OnConnected Id: {peer.Id}");
         }
 
         private void OnDisconnected(UdpPeer peer)
         {
-            Debug.Log($"[Server] OnDisconnected: {peer.EndPoint}");
+            udpPeer = null;
+            Debug.Log($"[Server] OnDisconnected Id: {peer.Id}, Reason: {peer.ReasonDisconnection}");
         }
 
         private void OnReceiveReliable(UdpPeer peer, byte[] packet)

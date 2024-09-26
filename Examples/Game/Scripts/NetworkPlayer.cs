@@ -22,6 +22,8 @@ namespace SimpleUDP.Examples
 
         private void Update()
         {
+            float lerpSpeed = Speed * 1.3f;
+
             if (IsLocal)
             {
                 if (!moveToZero)
@@ -39,17 +41,17 @@ namespace SimpleUDP.Examples
                     if (Vector3.Distance(transform.position, Vector3.zero) <= 0.1f)
                         moveToZero = false;
 
-                    transform.position = Vector3.Lerp(transform.position, Vector3.zero, (Speed * 2.5f) * Time.deltaTime);
+                    transform.position = Vector3.Lerp(transform.position, Vector3.zero, lerpSpeed * Time.deltaTime);
                 }
 
                 return;
             }
             
             if (newPosition != transform.position)
-                transform.position = Vector3.Lerp(transform.position, newPosition, (Speed * 2.5f) * Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, newPosition, lerpSpeed * Time.deltaTime);
 
             if (newQuaternion != transform.rotation)
-                transform.rotation = Quaternion.Lerp(transform.rotation, newQuaternion, (Speed * 2.5f) * Time.deltaTime);
+                transform.rotation = Quaternion.Lerp(transform.rotation, newQuaternion, lerpSpeed * Time.deltaTime);
         }
 
         private void FixedUpdate()

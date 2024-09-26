@@ -18,4 +18,14 @@ namespace SimpleUDP.Core
         public const byte Broadcast = 10;
         public const byte Unconnected = 11;
     }
+    internal static class UdpIndex
+    {
+        internal const byte Ack = 1;
+        internal const byte Header = 0;
+        
+        internal const byte Reliable = 2;
+        internal const byte Unreliable = 1;
+
+        internal const byte Reason = 1;
+    }
 }
