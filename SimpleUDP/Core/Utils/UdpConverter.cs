@@ -1,7 +1,7 @@
 using System;
 
 namespace SimpleUDP.Utils
-{
+{ 
     public static class UdpConverter
     {
         public const byte SizeBool = 1;
