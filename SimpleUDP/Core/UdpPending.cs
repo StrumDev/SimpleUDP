@@ -4,41 +4,36 @@ namespace SimpleUDP.Core
 {
     public class UdpPending
     {
-        internal uint attempt { get; private set; }
-        internal uint sendTimer { get; private set; }
+        private Action<byte[]> rawSend;
 
+        internal uint timer { get; private set; }
         internal byte[] buffer { get; private set; }
-        internal Action<byte[]> RawSend { get; private set; }
-        
+
         internal UdpPending(Action<byte[]> rawSend)
         {
-            RawSend = rawSend;
+            this.rawSend = rawSend;
         }
 
-        internal void SendPacket(params byte[] packet)
+        internal void SendPacket(byte[] packet)
         {
-            attempt++;
-            RawSend(buffer = packet);
+            rawSend(buffer = packet);
         }
 
         internal void UpdateTimer(uint deltaTime, uint interval)
         {
             if (buffer != null)
             {
-                sendTimer += deltaTime;
-
-                if (sendTimer >= interval)
+                if ((timer += deltaTime) >= interval)
                 {
-                    sendTimer = 0;
-                    SendPacket(buffer);
+                    timer = 0;
+                    rawSend(buffer);
                 }
             }
         }
 
         internal void ClearPacket()
         {
-            attempt = 0;
-            sendTimer = 0;
+            timer = 0;
             buffer = null;
         }
     }

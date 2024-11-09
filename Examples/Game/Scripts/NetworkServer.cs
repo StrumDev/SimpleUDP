@@ -87,7 +87,7 @@ namespace SimpleUDP.Examples
 
         private void Movement(Packet packet, UdpPeer peer)
         {
-            Server.SendAllUnreliable(packet, peer.Id);
+            Server.SendAllReliable(packet, peer.Id);
         }
         
         private void OnStopped()

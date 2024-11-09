@@ -76,7 +76,7 @@ namespace SimpleUDP.Examples
                     return;
                 
                 // 1000ms / 40 = TickRate: 25
-                NetworkManager.Client.SendUnreliable(GetTransform());
+                NetworkManager.Client.SendReliable(GetTransform());
                 
                 packet.Reset();
                 await Task.Delay(40);

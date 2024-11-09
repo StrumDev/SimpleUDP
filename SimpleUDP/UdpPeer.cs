@@ -52,6 +52,7 @@ namespace SimpleUDP
 
         private bool isSendingPing;
         private const float RetryTime = 1.4f;
+        private const float SmoothingRtt = 0.125f;
 
         internal UdpPeer(SendTo sendTo)
         {
@@ -104,6 +105,11 @@ namespace SimpleUDP
         {
             if (State == State.Connected)
                 channel.SendUnreliable(packet, length, offset);
+        }
+        
+        internal void RawSend(params byte[] packet)
+        {
+            sendTo(packet, packet.Length, EndPoint);
         }
         
         internal void UpdateTimer(uint deltaTime)
@@ -159,12 +165,13 @@ namespace SimpleUDP
         {
             if (State == State.Connecting)
             {
-                ClearPending();
-
                 Id = peerId;
-                State = State.Connected;
-                
+                Rtt = ElapsedMilliseconds;
+
+                ClearPending();
                 channel.Initialize();
+
+                State = State.Connected;                
                 SendPing();
             }
         }
@@ -240,15 +247,11 @@ namespace SimpleUDP
 
             SendPending(packet);
         }
-        
-        private void SetChannelInterval(uint rtt)
-        {
-            channel.Interval = (uint)Math.Max(10, rtt * RetryTime);
-        }
 
-        internal void RawSend(params byte[] packet)
+        private void UpdateRtt(uint measuredRTT)
         {
-            sendTo(packet, packet.Length, EndPoint);
+            Rtt = (uint)((1 - SmoothingRtt) * Rtt + SmoothingRtt * measuredRTT);
+            channel.Interval = (uint)Math.Max(10, Rtt * RetryTime);
         }
 
         private void SendPending(params byte[] packet)
@@ -262,8 +265,7 @@ namespace SimpleUDP
             watch.Stop();
             pending.ClearPacket();
 
-            Rtt = ElapsedMilliseconds;
-            SetChannelInterval(Rtt);   
+            UpdateRtt(ElapsedMilliseconds);
         }
     }
 }

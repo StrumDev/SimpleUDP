@@ -18,12 +18,12 @@ namespace SimpleUDP
 
         [Header("UI Buttons")]
         public Text TextConnect;
-        public Button ButtonСonnect;
+        public Button ButtonConnect;
         public Text TextDisconnect;
         public Button ButtonDisconnect;
 
         [Header("UI Text")]
-        public Text PingScore;
+        public Text RttScore;
         public Text LocalPortText;
         
         public void Connected()
@@ -42,16 +42,16 @@ namespace SimpleUDP
             Pause.SetActive(false);
         }
 
-        public void SetPingText(uint ping)
+        public void SetRttText(uint rtt)
         {
-            PingScore.text = $"Ping: {ping}ms";
+            RttScore.text = $"Rtt: {rtt}ms";
         }
         
         public void SetActionConnect(string text, Action action)
         {
             TextConnect.text = text;
-            ButtonСonnect.onClick.RemoveAllListeners();
-            ButtonСonnect.onClick.AddListener(() => action());
+            ButtonConnect.onClick.RemoveAllListeners();
+            ButtonConnect.onClick.AddListener(() => action());
         }
 
         public void SetActionDisconnect(string text, Action action)

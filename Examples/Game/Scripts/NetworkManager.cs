@@ -2,6 +2,7 @@ using SimpleUDP;
 using UnityEngine;
 using System.Threading;
 using System.Threading.Tasks;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace SimpleUDP.Examples
 {
@@ -18,7 +19,15 @@ namespace SimpleUDP.Examples
 
         public static UdpServer Server;
         public static UdpClient Client;
+
+        [Header("Diagnostics Server")]
+        public uint ElapsedTickServer;
+        public int AvailableServer;
         
+        [Header("Diagnostics Client")]
+        public uint ElapsedTickClient;
+        public int AvailableClient;
+
         private bool isActive;
         private UIMenager uiMenager;
 
@@ -50,7 +59,10 @@ namespace SimpleUDP.Examples
             uiMenager.Connected();
             
             if (Server.IsRunning)
+            {
+                uiMenager.LocalPortText.gameObject.SetActive(true);
                 uiMenager.LocalPortText.text = $"LocalPort: {Server.LocalPort}";
+            }  
         }
 
         private void OnDisconnected()
@@ -62,6 +74,8 @@ namespace SimpleUDP.Examples
 
             if (Server.IsRunning)
                 Server.Stop();
+            
+            uiMenager.LocalPortText.gameObject.SetActive(false);
         }
 
         public void CreateGame()
@@ -105,11 +119,16 @@ namespace SimpleUDP.Examples
         private void FixedUpdate()
         {
             if (Client.State == State.Connected)
-                uiMenager.SetPingText(Client.Rtt / 2);
+                uiMenager.SetRttText(Client.Rtt);
+
+            AvailableServer = Server.AvailablePackages;
+            AvailableClient = Client.AvailablePackages;
         }
 
         private void UpdateThreadServer()
         {
+            Stopwatch swServer = new Stopwatch();
+
             while (isActive)
             {
                 if (!Server.IsRunning)
@@ -117,6 +136,9 @@ namespace SimpleUDP.Examples
                 
                 if (Server.SocketPoll)
                 {
+                    ElapsedTickServer = (uint)swServer.ElapsedMilliseconds;
+                    swServer.Restart();
+
                     // 1000ms / 10 = TickRate: 100
                     Server.Receive();
                     Server.TickUpdate();
@@ -128,8 +150,13 @@ namespace SimpleUDP.Examples
 
         private async void UpdateAsyncClient()
         {
+            Stopwatch swClient = new Stopwatch();
+
             while (isActive)
             {
+                ElapsedTickClient = (uint)swClient.ElapsedMilliseconds;
+                swClient.Restart();
+
                 // 1000ms / 20 = TickRate: 50
                 Client.Receive();
                 Client.TickUpdate();

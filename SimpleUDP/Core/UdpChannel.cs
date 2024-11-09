@@ -1,74 +1,47 @@
 using System;
 using SimpleUDP.Utils;
-using System.Collections.Generic;
 
 namespace SimpleUDP.Core
 {
     public class UdpChannel
-    {   
-        internal uint Interval = 50;
-        internal ushort MaxQueue = 64;
-        internal ushort CapacityQueue = 128;
-        
+    {  
         internal Action<byte[]> RawSend;
         
-        internal const byte MaxPending = 128;
+        internal uint Interval = 50;
+        internal byte MaxPending = 64;
 
+        internal ushort MaxQueue = 4;
+        internal ushort CapacityQueue = 16;
+        
+        internal const byte MaximumCount = 128;
+        
         private byte[] sendAck;
         private byte[] receiveAck;
-        private Stack<byte> indexes;
+
         private UdpBuffer<byte[]> udpBuffer;
-        private UdpPending[] pending;
-        private Dictionary<byte, UdpPending> inPending;
-        
-        private bool isInitialize;
+        private UdpActive<UdpPending> pendings;
+
         private object locker = new object();
+        private object lockerAck = new object();
 
         public UdpChannel(Action<byte[]> rawSend)
         {
             RawSend = rawSend;
-            isInitialize = false;
         }
 
         internal void Initialize()
         {
-            lock (locker)
-            {
-                sendAck = new byte[MaxPending];
-                receiveAck = new byte[MaxPending];
-                pending = new UdpPending[MaxPending];
-                indexes = new Stack<byte>(MaxPending);
-                inPending = new Dictionary<byte, UdpPending>();
-                udpBuffer = new UdpBuffer<byte[]>(MaxQueue, CapacityQueue);
+            sendAck = new byte[MaxPending];
+            receiveAck = new byte[MaximumCount];
 
-                for (int index = MaxPending - 1; index >= 0; index--)
-                {
-                    indexes.Push((byte)index);
-                    pending[index] = new UdpPending(RawSend);
-                }
+            pendings = new UdpActive<UdpPending>(MaxPending);
 
-                isInitialize = true;
-            }  
+            for (int index = 0; index < MaxPending; index++)
+                pendings.AddElement(new UdpPending(RawSend));
+            
+            udpBuffer = new UdpBuffer<byte[]>(MaxQueue, CapacityQueue);
         }
 
-        internal void ClearChannel()
-        {
-            lock (locker)
-            {
-                if (inPending != null)
-                {
-                    isInitialize = false;
-
-                    foreach (UdpPending pending in pending)
-                        pending.ClearPacket();
-                    
-                    indexes.Clear(); 
-                    udpBuffer.Clear();
-                    inPending.Clear();
-                }
-            }
-        }
-        
         internal void SendUnreliable(byte[] packet, int length, int offset)
         {
             byte[] buffer = new byte[length + UdpIndex.Unreliable];
@@ -88,37 +61,42 @@ namespace SimpleUDP.Core
                 buffer[UdpIndex.Header] = UdpHeader.Reliable;
                 Buffer.BlockCopy(packet, offset, buffer, UdpIndex.Reliable, length);
 
-                if (indexes.Count != 0)
-                    SendPending(indexes.Pop(), buffer);
-                else
-                    udpBuffer.AddElement(buffer);    
+                if (pendings.TrySetActive(out byte index))
+                    SendPending(index, buffer);
+                else 
+                    udpBuffer.AddElement(buffer);
             }
+        }
+
+        private void SendPending(byte index, byte[] buffer)
+        {
+            NextAck(index, ref sendAck[index], out buffer[UdpIndex.Ack]);
+            pendings[index].SendPacket(buffer);
         }
 
         internal void UpdateTimer(uint deltaTime)
         {
             lock (locker)
             {
-                if (isInitialize)
-                {
-                    foreach (UdpPending pending in inPending.Values)
-                        pending.UpdateTimer(deltaTime, Interval);
-                }   
+                for (int index = 0; index < pendings.ActiveCount; index++)
+                    pendings.GetActive(index)?.UpdateTimer(deltaTime, Interval);
             }
         }
 
         internal bool IsNewAck(byte[] data)
         {
-            RawSend(new byte[]{UdpHeader.ReliableAck, data[UdpIndex.Ack]});
-
-            byte index = GetIndex(data[UdpIndex.Ack]);
-            
-            if (receiveAck[index] != data[UdpIndex.Ack])
+            lock (lockerAck)
             {
-                receiveAck[index] = data[UdpIndex.Ack];
-                return true;
+                byte index = GetIndex(data[UdpIndex.Ack]);
+                RawSend(new byte[]{UdpHeader.ReliableAck, data[UdpIndex.Ack]});
+                
+                if (receiveAck[index] != data[UdpIndex.Ack])
+                {
+                    receiveAck[index] = data[UdpIndex.Ack];
+                    return true;
+                }
+                else return false;  
             }
-            else return false;
         }
 
         internal void ClearAck(byte[] data)
@@ -127,27 +105,19 @@ namespace SimpleUDP.Core
             {
                 byte index = GetIndex(data[UdpIndex.Ack]);
 
-                if (inPending.ContainsKey(index))
+                if (pendings[index].buffer == null)
+                    return;
+                
+                if (pendings[index].buffer[UdpIndex.Ack] == data[UdpIndex.Ack])
                 {
-                    pending[index].ClearPacket();
+                    pendings[index].ClearPacket();
 
-                    if (udpBuffer.Count == 0)
-                    {
-                        indexes.Push(index);
-                        inPending.Remove(index);
-                    }
-                    else SendPending(index, udpBuffer.GetElement());
-                }       
+                    if (udpBuffer.Count != 0)
+                        SendPending(index, udpBuffer.GetElement());
+                    else
+                        pendings.RemoveActive(index);
+                }   
             }
-        }
-        
-        private void SendPending(byte index, byte[] buffer)
-        {
-            NextAck(index, ref sendAck[index], out buffer[UdpIndex.Ack]);
-            pending[index].SendPacket(buffer);
-
-            if (!inPending.ContainsKey(index))
-                inPending.Add(index, pending[index]);    
         }
 
         private void NextAck(byte index, ref byte ack, out byte newAck)
@@ -158,6 +128,17 @@ namespace SimpleUDP.Core
         private byte GetIndex(byte header)
         {
             return (byte)(header < 128 ? header : header - 128);
+        }
+        
+        internal void ClearChannel()
+        {
+            if (pendings != null)
+            {
+                for (int i = 0; i < MaxPending; i++)
+                    pendings[i].ClearPacket();
+
+                udpBuffer.Clear();   
+            }
         }
     }
 }

@@ -33,6 +33,7 @@ namespace SimpleUDP
         public UdpServer()
         {    
             disconnectedPeers = new Stack<UdpPeer>();
+
             peers = new Dictionary<EndPoint, UdpPeer>();
             connections = new Dictionary<uint, UdpPeer>();
 
@@ -109,12 +110,17 @@ namespace SimpleUDP
         {
             lock (locker)
             {
+                byte[] buffer = new byte[length + UdpIndex.Unreliable];
+            
+                buffer[UdpIndex.Header] = UdpHeader.Unreliable;
+                Buffer.BlockCopy(packet, offset, buffer, UdpIndex.Unreliable, length);
+            
                 foreach (UdpPeer peer in Connections.Values)
                 {
                     if (peer.Id != ignoreId)
-                        peer.SendUnreliable(packet, length, offset);
-                }    
-            }
+                        peer.RawSend(buffer);
+                }
+            } 
         }
 
         protected sealed override void OnTickUpdate(uint deltaTime)
@@ -130,8 +136,11 @@ namespace SimpleUDP
         {
             lock (locker)
             {
-                foreach (UdpPeer peer in peers.Values)
-                    peer.UpdateTimer(deltaTime);   
+                if (IsRunning)
+                {
+                    foreach (UdpPeer peer in peers.Values)
+                        peer.UpdateTimer(deltaTime);    
+                }
             }
         }
 
@@ -139,8 +148,11 @@ namespace SimpleUDP
         {
             lock (locker)
             {
-                while (disconnectedPeers.Count != 0)
-                    RemovePeer(disconnectedPeers.Pop());    
+                if (IsRunning)
+                {
+                    while (disconnectedPeers.Count != 0)
+                        RemovePeer(disconnectedPeers.Pop());     
+                }
             }
         }
 
@@ -329,6 +341,7 @@ namespace SimpleUDP
         {
             byte[] buffer = new byte[length - UdpIndex.Unreliable];
             Buffer.BlockCopy(data, UdpIndex.Unreliable, buffer, 0, length - UdpIndex.Unreliable);
+
             OnReceiveBroadcast?.Invoke(endPoint, buffer);
         }
 
@@ -336,6 +349,7 @@ namespace SimpleUDP
         {
             byte[] buffer = new byte[length - UdpIndex.Unreliable];
             Buffer.BlockCopy(data, UdpIndex.Unreliable, buffer, 0, length - UdpIndex.Unreliable);
+
             OnReceiveUnconnected?.Invoke(endPoint, buffer);
         }
 

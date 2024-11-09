@@ -65,7 +65,7 @@ namespace SimpleUDP
         public Packet Bool(bool value)
         {
             if (!CanWrite(UdpConverter.SizeBool))
-                throw new IndexOutOfRangeException();
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
 
             write += UdpConverter.SetBool(value, Data, write);
             return this;
@@ -335,7 +335,7 @@ namespace SimpleUDP
         public Packet Double(double value)
         {
             if (!CanWrite(UdpConverter.SizeDouble))
-                throw new IndexOutOfRangeException();
+                throw new IndexOutOfRangeException($"The maximum length should not exceed {Data.Length} bytes");
             
             write += UdpConverter.SetDouble(value, Data, write);
             return this;

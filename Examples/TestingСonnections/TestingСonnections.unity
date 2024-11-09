@@ -262,7 +262,7 @@ MonoBehaviour:
   IpAddress: 127.0.0.1
   Port: 12700
   "Max\u0421onnection\u0421reation": 1024
-  "Delay\u0421reation\u0421onnection": 100
+  "Delay\u0421reation\u0421onnection": 25
   Clients: []
 --- !u!114 &1067805707
 MonoBehaviour:

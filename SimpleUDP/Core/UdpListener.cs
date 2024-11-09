@@ -105,7 +105,7 @@ namespace SimpleUDP.Core
                         OnRawHandler(buffer, size, sender);
                     }
                 }
-                catch (Exception) { return; }      
+                catch (Exception) { return; }
             }   
         }
 

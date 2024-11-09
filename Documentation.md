@@ -6,7 +6,7 @@ SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for b
 ### The project at this stage is already suitable for use in small commercial applications and games.
  - I don't plan to make any major changes to the functionality in the future, mostly bug fixes and performance improvements.
 
-**Version:** 0.5.0
+**Version:** 0.6.0
 
 [General](#General)
 
