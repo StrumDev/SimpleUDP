@@ -7,7 +7,7 @@ namespace SimpleUDP.Utils
         public int Count { get; private set; }
 
         internal readonly ushort MaxQueue = 16;
-        internal readonly ushort Сapacity = 256;
+        internal readonly ushort Capacity = 256;
         
         private Queue<T>[] queues;
         private int queueWrite, queueRead;
@@ -19,7 +19,7 @@ namespace SimpleUDP.Utils
             queues = new Queue<T>[MaxQueue = maxQueue];
 
             for (int i = 0; i < MaxQueue; i++)
-                queues[i] = new Queue<T>(Сapacity = capacity);
+                queues[i] = new Queue<T>(Capacity = capacity);
         }
 
         public void AddElement(T value)
