@@ -1203,10 +1203,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   IpAddress: 127.0.0.1
   Port: 12700
-  ElapsedServer: 0
-  AvailableServer: 0
-  ElapsedClient: 0
-  AvailableClient: 0
+  ElapsedTickServer: 0
+  AvailablePackageServer: 0
+  ElapsedTickClient: 0
+  AvailablePackageClient: 0
 --- !u!114 &1299383060
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2098,7 +2098,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: v0.6.0
+  m_Text: v0.7.0
 --- !u!222 &1792310991
 CanvasRenderer:
   m_ObjectHideFlags: 0

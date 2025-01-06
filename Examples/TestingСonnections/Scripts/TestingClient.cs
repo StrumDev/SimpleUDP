@@ -58,8 +58,10 @@ namespace SimpleUDP.Examples
 
         [Serializable] public class Client
         {
+            public uint Id;
             public uint Rtt;
             public bool IsConnected;
+
             private UdpClient udpClient;
 
             public Client(string address, ushort port)
@@ -78,7 +80,8 @@ namespace SimpleUDP.Examples
             {
                 udpClient.Receive();
                 udpClient.TickUpdate();
-
+                
+                Id = udpClient.Id;
                 Rtt = udpClient.Rtt;
             }
 

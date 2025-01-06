@@ -11,11 +11,11 @@ namespace SimpleUDP
         
         public byte[] Data { get; private set; }
         
-        public const ushort MaxSizeData = 1432;
+        public const ushort MaxSizePacket = 1432;
         
         private int write, read;
         
-        public static Packet Write(ushort maxSizeData = MaxSizeData) =>
+        public static Packet Write(ushort maxSizeData = MaxSizePacket) =>
             new Packet(new byte[maxSizeData]);
 
         public static Packet Read(byte[] packet) =>
@@ -388,7 +388,7 @@ namespace SimpleUDP
 
     #region String
 
-        public static Packet String(string value, ushort maxSizeData = MaxSizeData) =>
+        public static Packet String(string value, ushort maxSizeData = MaxSizePacket) =>
             new Packet(new byte[maxSizeData]).String(value);
 
         public Packet String(string value)

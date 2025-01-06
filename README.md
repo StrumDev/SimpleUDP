@@ -1,4 +1,4 @@
-# SimpleUDP v0.6.0
+# SimpleUDP v0.7.0
 
 ### SimpleUDP is a simple network library that provides reliable and unreliable messages.
 

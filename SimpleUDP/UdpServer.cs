@@ -20,15 +20,16 @@ namespace SimpleUDP
         public uint TimeOut = 5000;
         public uint MaxConnections = 256;
         public string KeyConnection = "";
+        public uint MaxNumberId = ushort.MaxValue;
 
         public ReadOnlyDictionary<uint, UdpPeer> Connections;
         public uint ConnectionsCount => (uint)connections.Count;
         
-        private uint sequenceNumberId;
-        
         private Stack<UdpPeer> disconnectedPeers;
         private Dictionary<EndPoint, UdpPeer> peers;
         private Dictionary<uint, UdpPeer> connections;
+
+        private const int ServerKilobytes = 2048;
 
         public UdpServer()
         {    
@@ -43,6 +44,8 @@ namespace SimpleUDP
         protected override void OnListenerStarted()
         {
             AdjustBufferSizes(ServerKilobytes);
+
+            UdpLog.Info($"[Server] Started on port: {LocalPort}");
             base.OnListenerStarted();
         }
 
@@ -84,43 +87,33 @@ namespace SimpleUDP
             SendAllUnreliable(packet, packet.Length, 0, ignoreId);
         }
 
-        public void SendAllReliable(byte[] packet, int length, uint ignoreId = 0)
-        {
-            SendAllReliable(packet, length, 0, ignoreId);
-        }
-
-        public void SendAllUnreliable(byte[] packet, int length, uint ignoreId = 0)
-        {
-            SendAllUnreliable(packet, length, 0, ignoreId);
-        }
-
         public void SendAllReliable(byte[] packet, int length, int offset, uint ignoreId = 0)
         {
-            lock (locker)
+            lock (connections)
             {
                 foreach (UdpPeer peer in Connections.Values)
                 {
                     if (peer.Id != ignoreId)
                         peer.SendReliable(packet, length, offset);
-                }    
+                }     
             }
         }
 
         public void SendAllUnreliable(byte[] packet, int length, int offset, uint ignoreId = 0)
         {
-            lock (locker)
+            lock (connections)
             {
                 byte[] buffer = new byte[length + UdpIndex.Unreliable];
-            
+                    
                 buffer[UdpIndex.Header] = UdpHeader.Unreliable;
                 Buffer.BlockCopy(packet, offset, buffer, UdpIndex.Unreliable, length);
-            
+
                 foreach (UdpPeer peer in Connections.Values)
                 {
                     if (peer.Id != ignoreId)
                         peer.RawSend(buffer);
-                }
-            } 
+                }   
+            }
         }
 
         protected sealed override void OnTickUpdate(uint deltaTime)
@@ -134,9 +127,9 @@ namespace SimpleUDP
 
         public void UpdateTimer(uint deltaTime)
         {
-            lock (locker)
+            if (IsRunning)
             {
-                if (IsRunning)
+                lock (peers)
                 {
                     foreach (UdpPeer peer in peers.Values)
                         peer.UpdateTimer(deltaTime);    
@@ -146,13 +139,10 @@ namespace SimpleUDP
 
         public void UpdateDisconnecting()
         {
-            lock (locker)
+            if (IsRunning)
             {
-                if (IsRunning)
-                {
-                    while (disconnectedPeers.Count != 0)
-                        RemovePeer(disconnectedPeers.Pop());     
-                }
+                while (disconnectedPeers.Count != 0)
+                    RemovePeer(disconnectedPeers.Pop());     
             }
         }
 
@@ -166,7 +156,7 @@ namespace SimpleUDP
 
         private void AcceptConnect(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
+            lock (peers)
             {
                 if (!UdpPeer.KeyMatching(KeyConnection, data, length, UdpPeer.HeaderSize))
                 {
@@ -189,7 +179,7 @@ namespace SimpleUDP
                     };
 
                     peers.Add(endPoint, udpPeer);
-                    udpPeer.SendConnect(endPoint, GetNewId(), KeyConnection);
+                    udpPeer.SendConnect(endPoint, GetNewId(udpPeer), KeyConnection);
                 }
             }
         }
@@ -225,7 +215,7 @@ namespace SimpleUDP
                 buffer[UdpIndex.Header] = UdpHeader.Unconnected;
                 Buffer.BlockCopy(packet, 0, buffer, UdpIndex.Unreliable, length);
 
-                SendTo(endPoint, buffer);                      
+                SendTo(endPoint, buffer);
             }
         }
         
@@ -277,35 +267,35 @@ namespace SimpleUDP
 
         private void HandlerConnected(EndPoint endPoint)
         {
-            lock (locker)
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
             {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                if (connections.ContainsKey(peer.Id))
+                    return;
+                
+                lock (connections)
                 {
-                    if (Connections.ContainsKey(peer.Id))
-                        return;
-
                     peer.SetConnected(peer.Id);
                     peer.OnLostConnection = LostConnection;
-
+                    
                     connections.Add(peer.Id, peer);
-                    OnPeerConnected(peer);
-                }                
+
+                    UdpLog.Info($"[Server] Client Connected: {peer.Id}!");
+                }
+                
+                OnPeerConnected(peer);
             }
         }
 
         private void HandlerDiconnected(byte[] data, int length, EndPoint endPoint)
         {
-            lock (locker)
+            if (peers.TryGetValue(endPoint, out UdpPeer peer))
             {
-                if (peers.TryGetValue(endPoint, out UdpPeer peer))
+                if (peer.State != State.NoConnect)
                 {
-                    if (peer.State != State.NoConnect)
-                    {
-                        peer.ReasonDisconnection = (Reason)data[UdpIndex.Reason];
-                        
-                        peer.SetDisconnected();
-                        LostConnection(peer);
-                    }
+                    peer.ReasonDisconnection = (Reason)data[UdpIndex.Reason];
+                    
+                    peer.SetDisconnected();
+                    LostConnection(peer);
                 }
             }
         }
@@ -355,27 +345,37 @@ namespace SimpleUDP
 
         private void LostConnection(UdpPeer udpPeer)
         {
-            disconnectedPeers.Push(udpPeer);
-            
-            connections.Remove(udpPeer.Id);
+            lock (connections)
+            {
+                disconnectedPeers.Push(udpPeer);
+                connections.Remove(udpPeer.Id);
+
+                UdpLog.Info($"[Server] Client Disconnected: {udpPeer.Id}!"); 
+            }
+
             OnPeerDisconnected(udpPeer);
         }
         
         private void RemovePeer(UdpPeer udpPeer)
         {
-            lock (locker)
+            lock (peers)
             {
                 if (peers.ContainsKey(udpPeer.EndPoint))
                     peers.Remove(udpPeer.EndPoint);
             }
         }
 
-        private uint GetNewId()
+        private uint GetNewId(UdpPeer udpPeer)
         {
-            uint newId = ++sequenceNumberId;
+            uint newId = (uint)(Math.Abs(udpPeer.GetHashCode()) % MaxNumberId);
+            
+            if (newId == 0) newId += 1;
 
-            while (connections.ContainsKey(newId)) // (;
-                newId = ++sequenceNumberId; 
+            while (connections.ContainsKey(newId))
+            {
+                newId = (newId + 1) % MaxNumberId;
+                if (newId == 0) newId += 1;
+            }   
 
             return newId;
         }
@@ -390,7 +390,7 @@ namespace SimpleUDP
 
         protected override void OnListenerStopped()
         {
-            lock (locker)
+            lock (peers)
             {
                 foreach (UdpPeer peer in peers.Values)
                     peer.SetDisconnected();
@@ -399,6 +399,7 @@ namespace SimpleUDP
                 connections.Clear();
                 disconnectedPeers.Clear();
                 
+                UdpLog.Info($"[Server] Stopped!");
                 base.OnListenerStopped();
             }
         }

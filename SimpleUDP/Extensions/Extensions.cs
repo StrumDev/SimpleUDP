@@ -1,4 +1,6 @@
+using System;
 using System.Net;
+using SimpleUDP.Core;
 
 namespace SimpleUDP
 {

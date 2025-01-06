@@ -7,7 +7,7 @@ namespace SimpleUDP.Examples
     public class NetworkServer : MonoBehaviour
     {   
         public uint OnlinePlayers;
-        
+
         private List<UdpPeer> players = new List<UdpPeer>();
 
         private UdpServer Server => NetworkManager.Server;

@@ -20,6 +20,8 @@ namespace SimpleUDP.Examples
 
         private void Start()
         {
+            UdpLog.Initialize(Debug.Log);
+
             server = new UdpServer();
             server.KeyConnection = Key;
 

@@ -6,9 +6,11 @@ SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for b
 ### The project at this stage is already suitable for use in small commercial applications and games.
  - I don't plan to make any major changes to the functionality in the future, mostly bug fixes and performance improvements.
 
-**Version:** 0.6.0
+**Version:** 0.7.0
 
 [General](#General)
+
+[Log](#Log)
 
 [Server](#Server)
 
@@ -38,6 +40,12 @@ SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for b
 - `bool EnableBroadcast` `Read only`
   - Indicates if broadcast messages can be sent.
   - Enabling the broadcast is available in the parameters of the "Start()" method.
+
+- `LimitedSizePackage = true`
+  - Limits the maximum packet size for receiving to 1432 bytes.
+
+- `const ushort MaxSizePacket = 1432`
+  - The maximum packet size is 1432 bytes..
 
 - `ushort ReceiveBufferSize`
   - The buffer size in bytes for receiving packets.
@@ -94,6 +102,15 @@ SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for b
 - `void SendUnconnected(EndPoint endPoint, Packet packet)` `Extensions`
   - Sends a message without establishing a connection.
 
+## Log
+
+  The `UdpLog` class has additional properties, methods, and events specific to server functionality:
+
+### Methods
+
+- `void Initialize(Log logInfo, Log logWarning = null, Log logError = null)`
+  - Initializing logging for Server and Client.
+
 ## Server
 
   The `Server` class has additional properties, methods, and events specific to server functionality:
@@ -108,6 +125,10 @@ SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for b
 
 - `string KeyConnection = ""`
   - Server key, when clients try to establish a connection to the server, they must have the correct key for the server to allow the connection.
+
+- `uint MaxNumberId = ushort.MaxValue`
+  - Limits the maximum number of identifiers that can be issued.
+  - Note: It is desirable that the number of identifiers exceed the maximum number of connections by 2 times to reduce the likelihood of identifier collisions; in the event of a collision, a new available one is searched for.
 
 - `uint ConnectionsCount` `Read only`
   - The current number of connections to the server.

@@ -22,11 +22,11 @@ namespace SimpleUDP.Examples
 
         [Header("Diagnostics Server")]
         public uint ElapsedTickServer;
-        public int AvailableServer;
+        public int AvailablePackageServer;
         
         [Header("Diagnostics Client")]
         public uint ElapsedTickClient;
-        public int AvailableClient;
+        public int AvailablePackageClient;
 
         private bool isActive;
         private UIMenager uiMenager;
@@ -44,7 +44,7 @@ namespace SimpleUDP.Examples
         {
             isActive = true;
 
-            UpdateAsyncClient();
+            StartUpdateAsyncClient();
             
             uiMenager = GetComponent<UIMenager>();
 
@@ -85,7 +85,7 @@ namespace SimpleUDP.Examples
             else
                 Server.Start();
 
-            new Thread(UpdateThreadServer).Start();
+            StartUpdateThreadServer();
             Client.Connect("127.0.0.1", Server.LocalPort);
         }
 
@@ -121,40 +121,44 @@ namespace SimpleUDP.Examples
             if (Client.State == State.Connected)
                 uiMenager.SetRttText(Client.Rtt);
 
-            AvailableServer = Server.AvailablePackages;
-            AvailableClient = Client.AvailablePackages;
+            AvailablePackageServer = Server.AvailablePackages;
+            AvailablePackageClient = Client.AvailablePackages;
         }
 
-        private void UpdateThreadServer()
+        private void StartUpdateThreadServer()
         {
             Stopwatch swServer = new Stopwatch();
 
-            while (isActive)
+            new Thread(() => 
             {
-                if (!Server.IsRunning)
-                    return;
-                
-                if (Server.SocketPoll)
+                while (isActive)
                 {
-                    ElapsedTickServer = (uint)swServer.ElapsedMilliseconds;
+                    if (!Server.IsRunning)
+                        return;
+
+                    Smoothing(ref ElapsedTickServer, (uint)swServer.ElapsedMilliseconds, 0.2f);
                     swServer.Restart();
 
-                    // 1000ms / 10 = TickRate: 100
-                    Server.Receive();
-                    Server.TickUpdate();
-                }
+                    if (Server.SocketPoll)
+                    {
+                        // 1000ms / 10 = TickRate: 100
+                        Server.Receive();
+                        Server.TickUpdate();
+                    }
 
-                Thread.Sleep(10);
-            }
+                    Thread.Sleep(10);  
+                }
+                
+            }).Start();
         }
 
-        private async void UpdateAsyncClient()
+        private async void StartUpdateAsyncClient()
         {
             Stopwatch swClient = new Stopwatch();
 
             while (isActive)
             {
-                ElapsedTickClient = (uint)swClient.ElapsedMilliseconds;
+                Smoothing(ref ElapsedTickClient, (uint)swClient.ElapsedMilliseconds, 0.2f);
                 swClient.Restart();
 
                 // 1000ms / 20 = TickRate: 50
@@ -163,6 +167,11 @@ namespace SimpleUDP.Examples
                 
                 await Task.Delay(20);
             }
+        }
+
+        private void Smoothing(ref uint value, uint measuredValue, float smooth)
+        {
+            value = (uint)((1 - smooth) * value + smooth * measuredValue);
         }
 
         private void OnApplicationQuit()

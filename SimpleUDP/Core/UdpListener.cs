@@ -15,24 +15,25 @@ namespace SimpleUDP.Core
         public bool IsRunning { get; private set; }
         public ushort LocalPort { get; private set; }
         public EndPoint LocalEndPoint { get; private set; }
-
+        
+        public bool LimitedSizePackage = true;
         public ushort ReceiveBufferSize = 2048;
+        
+        public const ushort MaxSizePacket = 1432;
         
         public bool EnableBroadcast => socket.EnableBroadcast;
         
         public int AvailablePackages => IsRunning ? socket.Available : 0;
         public bool SocketPoll => IsRunning ? socket.Poll(500000, SelectMode.SelectRead) : false; //500000 => 0.5s
         
-        protected const int OneKilobyte = 1024;
-        protected const int ClientKilobytes = 64;
-        protected const int ServerKilobytes = 1024;
-
         private Socket socket;
         private EndPoint sender;
         private Stopwatch watch;
 
+        private const int OneKilobyte = 1024;
+
         private byte[] buffer;
-        protected object locker = new object();
+        private object locker = new object();
 
         // SioUdpConnreset = IOC_IN | IOC_VENDOR | 12
         private const int SioUdpConnreset = -1744830452;
@@ -99,9 +100,13 @@ namespace SimpleUDP.Core
             {
                 try
                 {
-                    while (socket.Available != 0)
+                    while (socket.Available > 0)
                     {
                         int size = socket.ReceiveFrom(buffer, ref sender);
+
+                        if (LimitedSizePackage && size >= MaxSizePacket)
+                            continue;
+                        
                         OnRawHandler(buffer, size, sender);
                     }
                 }

@@ -29,6 +29,8 @@ namespace SimpleUDP
         private UdpPeer udpPeer;
         private EndPoint remoteEndPoint;
 
+        private const int ClientKilobytes = 128;
+
         public UdpClient()
         {
             udpPeer = new UdpPeer(SendTo)
@@ -41,13 +43,20 @@ namespace SimpleUDP
         protected override void OnListenerStarted()
         {
             AdjustBufferSizes(ClientKilobytes);
+
+            UdpLog.Info($"[Client] Started on port: {LocalPort}");
             base.OnListenerStarted();
         }
 
         public void Connect(string address, ushort port)
         {
+            if (udpPeer.State != State.NoConnect)
+                return;
+            
             SetIPEndPoint(address, port);
             udpPeer.SendConnect(remoteEndPoint, Id, KeyConnection);
+
+            UdpLog.Info($"[Client] Connection to: {EndPoint}");
         }
 
         public void Disconnect()
@@ -108,6 +117,8 @@ namespace SimpleUDP
             if (udpPeer.State == State.Connecting)
             {
                 udpPeer.SetConnected(UdpConverter.GetUInt(data, UdpIndex.Unreliable));
+                
+                UdpLog.Info($"[Client] Connected successfully!");
                 OnPeerConnected();
             }
             
@@ -240,6 +251,8 @@ namespace SimpleUDP
         private void LostConnection(UdpPeer udpPeer)
         {
             udpPeer.SetDisconnected();
+
+            UdpLog.Info($"[Client] Disconnected from: {EndPoint}");
             OnPeerDisconnected();
         }
 
@@ -261,6 +274,8 @@ namespace SimpleUDP
         protected override void OnListenerStopped()
         {
             udpPeer.SetDisconnected();
+
+            UdpLog.Info($"[Client] Stopped!");
             base.OnListenerStopped();
         }
 
