@@ -138,14 +138,13 @@ namespace SimpleUDP.Examples
 
                     Smoothing(ref ElapsedTickServer, (uint)swServer.ElapsedMilliseconds, 0.2f);
                     swServer.Restart();
-
+                    
                     if (Server.SocketPoll)
-                    {
-                        // 1000ms / 10 = TickRate: 100
                         Server.Receive();
-                        Server.TickUpdate();
-                    }
-
+                    
+                    Server.TickUpdate();
+                    
+                    // 1000ms / 10 = TickRate: 100
                     Thread.Sleep(10);  
                 }
                 
