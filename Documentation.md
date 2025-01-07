@@ -44,7 +44,7 @@ SimpleUDP is a lightweight and easy-to-use UDP networking library suitable for b
 - `LimitedSizePackage = true`
   - Limits the maximum packet size for receiving to 1432 bytes.
 
-- `const ushort MaxSizePacket = 1432`
+- `ushort MaxSizePacket = 1432`
   - The maximum packet size is 1432 bytes..
 
 - `ushort ReceiveBufferSize`
